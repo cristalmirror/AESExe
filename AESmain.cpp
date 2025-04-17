@@ -3,6 +3,8 @@
 #include<vector>
 #include<cstring>
 #include"Cipher.hpp"
+#include"Decipher.hpp"
+
 using namespace std;
 
 const int BLOCK_SIZE = 16;
@@ -71,15 +73,9 @@ int main(int argc,char *argv[]) {
     cout <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << endl;
 
     //Key AES of 16 bytes
-    vector<unsigned char> key = {
-        0x2b, 0x7e, 0x15, 0x16,
-        0x28, 0xae, 0xd2, 0xa6,
-        0xab, 0xf7, 0x15, 0x88,
-        0x09, 0xcf, 0x4f, 0x3c
-    };
-
+    vector<unsigned char> key = generateSaveKeyBase("key.aes");
     AESCipher cipher(key);
-
+    
     //cipher and write blocks
     for (size_t i = 0; i < blocks.size(); i++) {
         vector<unsigned char> encrypted = cipher.encryptBlock(blocks[i]);

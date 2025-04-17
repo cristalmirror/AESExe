@@ -24,7 +24,6 @@ private:
     void mixColumns(std::vector<unsigned char>& state);
     //make keys
     std::vector<std::vector<unsigned char>> generateRandomKey();
-protected:
     //addRoundKey 
     void addRoundKey(std::vector<unsigned char>& state,const std::vector<unsigned char>& key);
     

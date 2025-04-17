@@ -1,0 +1,25 @@
+#ifndef DECIPHER_HPP
+#define DECIPHER_HPP
+
+#include <vector>
+#include <string>
+#include <fstream>
+#include <iostream>
+#include "Cipher.hpp"
+
+class AESDecipher {
+private:
+    std::vector<unsigned char> key;
+    std::vector<std::vector<unsigned char>> roundKeys;
+    void invSubBytes(std::vector<unsigned char> &state);
+    void invShiftRows(std::vector<unsigned char> &state);
+    void addRoundKey(std::vector<unsigned char> &state, const std::vector<unsigned char> &roundKey);
+    std::vector<unsigned char> decryptBlock(const std::vector<unsigned char> &block);
+public:
+    AESDecipher(const std::vector<unsigned char> &key);
+    static std::vector<unsigned char> decryptBlockPublic(const std::vector<unsigned char> &block);
+    static std::vector<unsigned char> readKeyFromFile(const std::string &keyFile);
+    static void writeDecryptedToFile(const std::string &filename, const std::vector<std::vector<unsigned char>> &blocks);
+};
+
+#endif

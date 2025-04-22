@@ -4,7 +4,7 @@
 #include <vector>
 #include <random>
 #include <algorithm>
-
+#include <iomanip>
 //Cipher class
 class AESCipher {
 public:
@@ -13,18 +13,19 @@ public:
     AESCipher(const std::vector<unsigned char>& key);
     //runing the parts of AES algoritm
     std::vector<unsigned char> encryptBlock(const std::vector<unsigned char>& block);
+    //make keys
+    std::vector<std::vector<unsigned char>> generateRandomKey(const std::vector<unsigned char>& key);
+    
 private:
 
     std::vector<std::vector<unsigned char>> keys;
     void subBytes(std::vector<unsigned char>& state);
     //method shitRows od AES
     void shiftRows(std::vector<unsigned char>& state);
+    // Multiplies a byte by 2 in the finite field GF(2^8)
     unsigned char xtime(unsigned char x);
     //mixColumns method
     void mixColumns(std::vector<unsigned char>& state);
-    //make keys
-    std::vector<std::vector<unsigned char>> generateRandomKey();
-protected:
     //addRoundKey 
     void addRoundKey(std::vector<unsigned char>& state,const std::vector<unsigned char>& key);
     
@@ -65,19 +66,21 @@ const unsigned char AESCipher::sbox[256] = {
         0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
 inline AESCipher::AESCipher(const std::vector<unsigned char>& key) {
-    this->keys = generateRandomKey();
+    this->keys = generateRandomKey(key);
 }
 
  //runing the parts of AES algoritm
 inline std::vector<unsigned char> AESCipher::encryptBlock(const std::vector<unsigned char>& block) {
     std::vector<unsigned char> state = block;
-
+    int cont=0;
     addRoundKey(state,keys[0]); //initial round
     for (int round = 0; round < 10; round++) {
         subBytes(state);
         shiftRows(state);
         mixColumns(state);
         addRoundKey(state, keys[round]);//expanded key for round
+        std::cout << cont << std::endl;
+        cont++;
     }
 
     //last round without mixColumns 
@@ -109,60 +112,52 @@ inline void AESCipher::shiftRows(std::vector<unsigned char>& state) {
     temp[5] = state[9];
     temp[9] = state[13];
     temp[13] = state[1];
-    //
+    //third file
     temp[2] = state[10];
     temp[6] = state[14];
     temp[10] = state[2];
     temp[14] = state[6];
-    //
-    // Cuarta fila (desplazada 3 posiciones o 1 a la derecha)
+    //fourd file
     temp[3] = state[15];
     temp[7] = state[3];
     temp[11] = state[7];
     temp[15] = state[11];
     
-    // Copiamos el resultado de nuevo al estado
+    //copy the new state
     state = temp;
 }
-
+// Multiplies a byte by 2 in the finite field GF(2^8)
 inline unsigned char AESCipher::xtime(unsigned char x) {
     return (x << 1) ^ ((x & 0x80) ? 0x1b :0x00);
 }
 
 inline void AESCipher::mixColumns(std::vector<unsigned char>& state) {
-        for (int c=0; c < 4; c++) {
-            int col = c * 4;
-            unsigned char s0 = state[col+ 0];
-            unsigned char s1 = state[col+ 1];
-            unsigned char s2 = state[col+ 2];
-            unsigned char s3 = state[col+ 3];
+    for (int c=0; c < 4; c++) {
+        int col = c * 4;
+        unsigned char s0 = state[col+ 0];
+        unsigned char s1 = state[col+ 1];
+        unsigned char s2 = state[col+ 2];
+        unsigned char s3 = state[col+ 3];
 
-            state[col + 0] = xtime(s0) ^ (xtime(s1) ^ s1) ^ s2 ^ s3;
-            state[col + 1] = s0 ^ xtime(s1) ^ (xtime(s2) ^ s2) ^ s3;
-            state[col + 2] = s0 ^ s1 ^ xtime(s2) ^ (xtime(s3) ^ s3);
-            state[col + 3] = (xtime(s0) ^ s0) ^ s1 ^ s2 ^ xtime(s3);
-        }
+        state[col + 0] = xtime(s0) ^ (xtime(s1) ^ s1) ^ s2 ^ s3;
+        state[col + 1] = s0 ^ xtime(s1) ^ (xtime(s2) ^ s2) ^ s3;
+        state[col + 2] = s0 ^ s1 ^ xtime(s2) ^ (xtime(s3) ^ s3);
+        state[col + 3] = (xtime(s0) ^ s0) ^ s1 ^ s2 ^ xtime(s3);
     }
+}
+
 inline void AESCipher::addRoundKey(std::vector<unsigned char>& state,const std::vector<unsigned char>& key) {
     for (size_t i = 0; i < state.size(); i++) {
         state[i] ^= key[i];
     }
 }
-//random key generation
-inline std::vector<std::vector<unsigned char>> AESCipher::generateRandomKey() {
-    const int Nb = 4; //bloques
-    const int Nk = 4; //palabras clave
-    const int Nr = 10; //rondas
-    std::vector<unsigned char> key(16); //key AES random
-    std::random_device rd; //entropy font
-    std::mt19937 gen(rd());//numbers engning
-    std::uniform_int_distribution<> dis(0, 255);
-
-    std::cout <<"<<[ MAKING EXTENDED KEYS ]>>"<<std::endl;
-    for (auto& byte : key) {
-        byte = static_cast<unsigned char>(dis(gen)); 
-    }
+//random keys generation for rounds
+inline std::vector<std::vector<unsigned char>> AESCipher::generateRandomKey(const std::vector<unsigned char>& key) {
+    const int Nb = 4; //blocks
+    const int Nk = 4; //key word
+    const int Nr = 10; //rounds
     
+    std::cout <<"<<[ MAKING EXTENDED KEYS ]>>"<<std::endl;    
     //expanded key
     std::vector<std::vector<unsigned char>> roundKeys(Nb *(Nr + 1), std::vector<unsigned char>(4,0));
     //copy all base keys in the first 4 words
@@ -198,7 +193,7 @@ inline std::vector<std::vector<unsigned char>> AESCipher::generateRandomKey() {
     }
     return roundKeys;
 }
-
+//base key necesary to init the encryptation
 inline std::vector<unsigned char> generateSaveKeyBase(const std::string &filename) {
     std::vector<unsigned char> randomKey(16);
     std::random_device rd;
@@ -210,6 +205,10 @@ inline std::vector<unsigned char> generateSaveKeyBase(const std::string &filenam
     }
     std::cout <<"*** base key has generated ***"<<std::endl;
     //generation file of key base
+
+    for (unsigned char byte : randomKey) {
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+    }
     std::ofstream outFile(filename, std::ios::binary);
     if (!outFile) {
         std::cerr<<"Error writing key to file"<<std::endl;

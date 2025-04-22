@@ -10,8 +10,9 @@
 class AESDecipher {
 public:
     static const unsigned char inv_sbox[256];
-    AESDecipher(const std::vector<std::vector<unsigned char>> &roundKeys);
+    AESDecipher(const std::vector<unsigned char> &key);
     std::vector<unsigned char> decryptBlock(const std::vector<unsigned char> &block);
+    std::vector<std::vector<unsigned char>> generateRandomKey(const std::vector<unsigned char>& key);
 private:
     std::vector<std::vector<unsigned char>> keys;
     void invSubBytes(std::vector<unsigned char> &state);
@@ -19,7 +20,8 @@ private:
     void invMixColumns(std::vector<unsigned char> &state);
     unsigned char gmul(unsigned char a, unsigned char b);
     void addRoundKey(std::vector<unsigned char>& state,const std::vector<unsigned char>& key);
-    
+    // Multiplies a byte by 2 in the finite field GF(2^8)
+    unsigned char xtime(unsigned char x);
 };
 
 const unsigned char AESDecipher::inv_sbox[256] = {
@@ -41,19 +43,26 @@ const unsigned char AESDecipher::inv_sbox[256] = {
     0x17,0x2B,0x04,0x7E,0xBA,0x77,0xD6,0x26,0xE1,0x69,0x14,0x63,0x55,0x21,0x0C,0x7D
 };
 
-AESDecipher::AESDecipher(const std::vector<std::vector<unsigned char>> &roundKeys) {
-    this->keys = roundKeys;
+static const unsigned char rcon[11] = {
+    0x00,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36
+};
+
+AESDecipher::AESDecipher(const std::vector<unsigned char> &key) {
+    this->keys = generateRandomKey(key);
 }
+
 
 inline std::vector<unsigned char> AESDecipher::decryptBlock(const std::vector<unsigned char> &block) {
     std::vector<unsigned char> state = block;
-
+    int cont=0;
     addRoundKey(state, keys[10]);
-    for (int round = 9; round > 0; round-- ) {
+    for (int round = 10; round > 0; round-- ) {
         invShiftRows(state);
         invSubBytes(state);
         addRoundKey(state, keys[round]);
         invMixColumns(state);
+        std::cout << cont << std::endl;
+        cont++;
     }
     invShiftRows(state);
     invSubBytes(state);
@@ -70,31 +79,30 @@ inline void AESDecipher::invSubBytes(std::vector<unsigned char> &state) {
 
 inline void AESDecipher::invShiftRows(std::vector<unsigned char> &state) {
     std::vector<unsigned char> temp(16);
-
+    //first file(without changes)
     temp[0]=state[0];
     temp[4]=state[4];
     temp[8]=state[8];
     temp[12]=state[12];
-
+     //second file
     temp[1]=state[13];
     temp[5]=state[1];
     temp[9]=state[5];
     temp[13]=state[9];
-
-
+    //third file
     temp[2]=state[10];
     temp[6]=state[14];
     temp[10]=state[2];
     temp[14]=state[6];
-
+    //fourd file
     temp[3]=state[7];
     temp[7]=state[11];
     temp[11]=state[15];
     temp[15]=state[3];
-
+    //copy the new state
     state = temp;
 }
-
+//GF(2^8) multiplications
 inline unsigned char AESDecipher::gmul(unsigned char a, unsigned char b) {
 
     unsigned char p = 0;
@@ -128,5 +136,51 @@ inline void AESDecipher::addRoundKey(std::vector<unsigned char>& state,const std
     for (size_t i = 0; i < state.size(); i++) {
         state[i] ^= key[i];
     }
+}
+// Multiplies a byte by 2 in the finite field GF(2^8)
+inline unsigned char AESDecipher::xtime(unsigned char x) {
+    return (x << 1) ^ ((x & 0x80) ? 0x1b :0x00);
+}
+//random keys generation for rounds
+inline std::vector<std::vector<unsigned char>> AESDecipher::generateRandomKey(const std::vector<unsigned char>& key) {
+    const int Nb = 4; //blocks
+    const int Nk = 4; //key words
+    const int Nr = 10; //rounds
+    
+    std::cout <<"<<[ MAKING EXTENDED KEYS ]>>"<<std::endl;    
+    //expanded key
+    std::vector<std::vector<unsigned char>> roundKeys(Nb *(Nr + 1), std::vector<unsigned char>(4,0));
+    //copy all base keys in the first 4 words
+    for (int i = 0; i < Nk; i++) {
+        roundKeys[i][0] = key[4 * i];
+        roundKeys[i][1] = key[4 * i + 1];
+        roundKeys[i][2] = key[4 * i + 2];
+        roundKeys[i][3] = key[4 * i + 3];
+    }
+    
+    unsigned char rcon = 0x01; //const initial round
+    
+    //The rest of the round keys begin to be generated (from i = 4 to i = 43).
+    for (int i = Nk; i < Nb * (Nr + 1); i++){
+        //The previous word (roundKeys[i-1]) is copied as base (temp).
+        std::vector<unsigned char> temp = roundKeys[i - 1];
+        if (i % Nk == 0) {
+            std::rotate(temp.begin(), temp.begin() + 1, temp.end());
+
+            //subWord
+            for (int j = 0; j < 4; j++) {
+                temp[j] = AESCipher::sbox[temp[j]];
+            }
+            //XOR with rcon
+            temp[0] ^= rcon;
+            //update rcon
+            rcon = xtime(rcon);
+        }
+        
+        for (int j = 0; j < 4; j++) {
+            roundKeys[i][j] = roundKeys[i - Nk][j] ^ temp[j];
+        }
+    }
+    return roundKeys;
 }
 #endif

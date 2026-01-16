@@ -8,11 +8,11 @@ How to Use:
 
 Encrypt exaple:
 
-`./aesExe file.txt key.aes`
+`./aesexe file.txt key.aes`
 
 Decrypt example:
 
-`./aesExe encrypted.aes key.aes resutl.txt`
+`./aesexe encrypted.aes key.aes resutl.txt`
 
 Each block is encrypted using AES-128.
 

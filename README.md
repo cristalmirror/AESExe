@@ -2,12 +2,13 @@ AESExe – AES Encryption in C++ This project implements a simple file encryptio
 
 How to Compile:
 
-g++ AESmain.cpp -o aesExe
+`g++ AESmain.cpp -o aesexe`
 
 How to Use:
-
-./aesExe file.txt The program reads the input file in 16-byte blocks.
-
+Encrypt exaple:
+`./aesExe file.txt key.aes`
+Decrypt example:
+`./aesExe encrypted.aes key.aes resutl.txt`
 Each block is encrypted using AES-128.
 
 The encrypted output is saved as a binary file: encrypt_archive.aes.

@@ -54,19 +54,21 @@ AESDecipher::AESDecipher(const std::vector<unsigned char> &key) {
 
 inline std::vector<unsigned char> AESDecipher::decryptBlock(const std::vector<unsigned char> &block) {
     std::vector<unsigned char> state = block;
-    int cont=0;
+    int cont=10;
     std::cout <<"[ROUND]: ";
     addRoundKey(state, keys[10]);
-    for (int round = 9; round >= 1; round-- ) {
-        invShiftRows(state);
-        invSubBytes(state);
-        addRoundKey(state, keys[round]);
-        invMixColumns(state);
-        std::cout << cont << " ";
-        cont++;
-    }
     invShiftRows(state);
     invSubBytes(state);
+    std::cout << cont << " ";
+    cont--;
+    for (int round = 9; round >= 1; round-- ) {
+        addRoundKey(state, keys[round]);
+        invMixColumns(state);
+        invShiftRows(state);
+        invSubBytes(state);        
+        std::cout << cont << " ";
+        cont--;
+    }
     addRoundKey(state, keys[0]);
     std::cout << cont << " ";
     std::cout <<std::endl;
@@ -152,7 +154,7 @@ inline std::vector<std::vector<unsigned char>> AESDecipher::generateRandomKey(co
     //expanded key
     std::vector<unsigned char> expanded(176);
     //copy all base keys in the first 4 words
-    for (int i = 0; i < 16 && i; i++) expanded[i] = key[i];
+    for (int i = 0; i < 16; i++) expanded[i] = key[i];
     int bytesGenerated = 16;
     unsigned char rcon = 0x01; //const initial round
     

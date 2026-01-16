@@ -32,9 +32,16 @@ public:
         //process last block if so small
         size_t bytesRead = inFile.gcount();
         if (bytesRead > 0) {
+            vector<unsigned char> lastBlock(BLOCK_SIZE,0);
+            for (size_t i = 0; i < bytesRead; i++) {
+                lastBlock[i] = buffer[i];
+            }
+            blocks.push_back(lastBlock);
+            /* last block procesing
             buffer.assign(BLOCK_SIZE,0); //push 0 if is necesary
             inFile.read(reinterpret_cast<char*>(buffer.data()),bytesRead);
             blocks.push_back(buffer);
+            */
         }
         inFile.close();
         return blocks;
@@ -63,7 +70,7 @@ void FileHandler::writeBlocksToFile(const string& filename, const vector<vector<
 //ends file determinations
 bool endsWith(const string& str, const string& suffix) {
     return str.size() >= suffix.size() &&
-           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+        str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 //readfile of key.aes
 vector<unsigned char> loadKeyFromFile(const string& filename) {
@@ -122,7 +129,8 @@ int main(int argc,char *argv[]) {
     } else if (endsWith(filename,".aes")) {
             
             //decipher
-            string keyFilename = argv[3];
+            string keyFilename = argv[2];
+            string filenameOutputDecrpyt = argv[3];
             vector<unsigned char> key = loadKeyFromFile(keyFilename);
             AESDecipher decipher(key);
             
@@ -134,7 +142,7 @@ int main(int argc,char *argv[]) {
                 decryptedBlocks.push_back(decrypted);
                 cout << "*** Bloque " << i + 1 << "/" << blocks.size() << " descifrado ***" << endl;
             }
-            FileHandler::writeBlocksToFile(filenameOutput, decryptedBlocks);
+            FileHandler::writeBlocksToFile(filenameOutputDecrpyt, decryptedBlocks);
 
     } else{
             cerr << "Extension de archivo no reconocida. Use .txt para cifrar o .aes para descifrar." << endl;

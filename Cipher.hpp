@@ -73,13 +73,14 @@ inline AESCipher::AESCipher(const std::vector<unsigned char>& key) {
 inline std::vector<unsigned char> AESCipher::encryptBlock(const std::vector<unsigned char>& block) {
     std::vector<unsigned char> state = block;
     int cont=0;
+    std::cout <<"[ROUND]: ";
     addRoundKey(state,keys[0]); //initial round
-    for (int round = 0; round < 10; round++) {
+    for (int round = 1; round <= 9; round++) {
         subBytes(state);
         shiftRows(state);
         mixColumns(state);
         addRoundKey(state, keys[round]);//expanded key for round
-        std::cout << cont << std::endl;
+        std::cout << cont << " ";
         cont++;
     }
 
@@ -87,7 +88,8 @@ inline std::vector<unsigned char> AESCipher::encryptBlock(const std::vector<unsi
     subBytes(state);
     shiftRows(state);
     addRoundKey(state, keys[10]);
-        
+    std::cout << cont << " ";
+    std::cout <<std::endl;
     return state;
 }
 
@@ -153,34 +155,28 @@ inline void AESCipher::addRoundKey(std::vector<unsigned char>& state,const std::
 }
 //random keys generation for rounds
 inline std::vector<std::vector<unsigned char>> AESCipher::generateRandomKey(const std::vector<unsigned char>& key) {
-    const int Nb = 4; //blocks
-    const int Nk = 4; //key word
     const int Nr = 10; //rounds
     
     std::cout <<"<<[ MAKING EXTENDED KEYS ]>>"<<std::endl;    
-    //expanded key
-    std::vector<std::vector<unsigned char>> roundKeys(Nb *(Nr + 1), std::vector<unsigned char>(4,0));
-    //copy all base keys in the first 4 words
-    for (int i = 0; i < Nk; i++) {
-        roundKeys[i][0] = key[4 * i];
-        roundKeys[i][1] = key[4 * i + 1];
-        roundKeys[i][2] = key[4 * i + 2];
-        roundKeys[i][3] = key[4 * i + 3];
-    }
+    //expanded key to 44 words(4 bytes each)
+    std::vector<unsigned char> expanded(176);
     
+    //copy all base keys in the first 4 words
+    for (int i = 0; i < 16; i++) expanded[i] = key[i];
+    int bytesGenerated = 16;
     unsigned char rcon = 0x01; //const initial round
     
     //The rest of the round keys begin to be generated (from i = 4 to i = 43).
-    for (int i = Nk; i < Nb * (Nr + 1); i++){
+    while (bytesGenerated < 176) {
         //The previous word (roundKeys[i-1]) is copied as base (temp).
-        std::vector<unsigned char> temp = roundKeys[i - 1];
-        if (i % Nk == 0) {
+        std::vector<unsigned char> temp(4);
+        for (int i = 0; i < 4; i++) temp[i] = expanded[bytesGenerated - 4 + i];
+
+        if (bytesGenerated % 16 == 0) {
             std::rotate(temp.begin(), temp.begin() + 1, temp.end());
 
             //subWord
-            for (int j = 0; j < 4; j++) {
-                temp[j] = AESCipher::sbox[temp[j]];
-            }
+            for (int j = 0; j < 4; j++) temp[j] = AESCipher::sbox[temp[j]];
             //XOR with rcon
             temp[0] ^= rcon;
             //update rcon
@@ -188,10 +184,20 @@ inline std::vector<std::vector<unsigned char>> AESCipher::generateRandomKey(cons
         }
         
         for (int j = 0; j < 4; j++) {
-            roundKeys[i][j] = roundKeys[i - Nk][j] ^ temp[j];
+            expanded[bytesGenerated] = expanded[bytesGenerated - 16] ^ temp[j];
+            bytesGenerated++;
         }
     }
-    return roundKeys;
+
+    //Here we organize the expanded key into 11 round keys of 16 bytes each
+    std::vector<std::vector<unsigned char>> finalKeys(11, std::vector<unsigned char>(16));
+    for (int i = 0; i < 11; i++) {
+        for (int j = 0; j < 16; j++) {
+            finalKeys[i][j] = expanded[i * 16 + j];
+        }
+    }
+    
+    return finalKeys; 
 }
 //base key necesary to init the encryptation
 inline std::vector<unsigned char> generateSaveKeyBase(const std::string &filename) {

@@ -55,19 +55,21 @@ AESDecipher::AESDecipher(const std::vector<unsigned char> &key) {
 inline std::vector<unsigned char> AESDecipher::decryptBlock(const std::vector<unsigned char> &block) {
     std::vector<unsigned char> state = block;
     int cont=0;
+    std::cout <<"[ROUND]: ";
     addRoundKey(state, keys[10]);
-    for (int round = 10; round > 0; round-- ) {
+    for (int round = 9; round >= 1; round-- ) {
         invShiftRows(state);
         invSubBytes(state);
         addRoundKey(state, keys[round]);
         invMixColumns(state);
-        std::cout << cont << std::endl;
+        std::cout << cont << " ";
         cont++;
     }
     invShiftRows(state);
     invSubBytes(state);
     addRoundKey(state, keys[0]);
-
+    std::cout << cont << " ";
+    std::cout <<std::endl;
     return state;
 }
 
@@ -143,28 +145,26 @@ inline unsigned char AESDecipher::xtime(unsigned char x) {
 }
 //random keys generation for rounds
 inline std::vector<std::vector<unsigned char>> AESDecipher::generateRandomKey(const std::vector<unsigned char>& key) {
-    const int Nb = 4; //blocks
-    const int Nk = 4; //key words
+
     const int Nr = 10; //rounds
     
     std::cout <<"<<[ MAKING EXTENDED KEYS ]>>"<<std::endl;    
     //expanded key
-    std::vector<std::vector<unsigned char>> roundKeys(Nb *(Nr + 1), std::vector<unsigned char>(4,0));
+    std::vector<unsigned char> expanded(176);
     //copy all base keys in the first 4 words
-    for (int i = 0; i < Nk; i++) {
-        roundKeys[i][0] = key[4 * i];
-        roundKeys[i][1] = key[4 * i + 1];
-        roundKeys[i][2] = key[4 * i + 2];
-        roundKeys[i][3] = key[4 * i + 3];
-    }
-    
+    for (int i = 0; i < 16 && i; i++) expanded[i] = key[i];
+    int bytesGenerated = 16;
     unsigned char rcon = 0x01; //const initial round
     
-    //The rest of the round keys begin to be generated (from i = 4 to i = 43).
-    for (int i = Nk; i < Nb * (Nr + 1); i++){
+    //expand keys
+    while (bytesGenerated < 176) {
         //The previous word (roundKeys[i-1]) is copied as base (temp).
-        std::vector<unsigned char> temp = roundKeys[i - 1];
-        if (i % Nk == 0) {
+        std::vector<unsigned char> temp(4);
+        for (int j = 0; j < 4; j++) {
+            temp[j] = expanded[bytesGenerated - 4 + j];
+        }
+
+        if (bytesGenerated % 16 == 0) {
             std::rotate(temp.begin(), temp.begin() + 1, temp.end());
 
             //subWord
@@ -176,11 +176,19 @@ inline std::vector<std::vector<unsigned char>> AESDecipher::generateRandomKey(co
             //update rcon
             rcon = xtime(rcon);
         }
-        
+     
         for (int j = 0; j < 4; j++) {
-            roundKeys[i][j] = roundKeys[i - Nk][j] ^ temp[j];
+            expanded[bytesGenerated] = expanded[bytesGenerated - 16] ^ temp[j];
+            bytesGenerated++;
         }
     }
-    return roundKeys;
+    //group keys in 11 vectors of 16 bytes
+    std::vector<std::vector<unsigned char>> finalKeys(11, std::vector<unsigned char>(16));
+    for (int i = 0; i < 11; i++) {
+        for (int j = 0; j < 16; j++) {
+            finalKeys[i][j] = expanded[i * 16 + j];
+        }
+    }   
+    return finalKeys;
 }
 #endif

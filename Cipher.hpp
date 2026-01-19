@@ -5,6 +5,7 @@
 #include <random>
 #include <algorithm>
 #include <iomanip>
+#include "colorString.hpp"
 //Cipher class
 class AESCipher {
 public:
@@ -73,14 +74,14 @@ inline AESCipher::AESCipher(const std::vector<unsigned char>& key) {
 inline std::vector<unsigned char> AESCipher::encryptBlock(const std::vector<unsigned char>& block) {
     std::vector<unsigned char> state = block;
     int cont=0;
-    std::cout <<"[ROUND]: ";
+    std::cout <<Color::NARANJA_NEGRO <<"[ROUND]: " << Color::RESET;
     addRoundKey(state,keys[0]); //initial round
     for (int round = 1; round <= 9; round++) {
         subBytes(state);
         shiftRows(state);
         mixColumns(state);
         addRoundKey(state, keys[round]);//expanded key for round
-        std::cout << cont << " ";
+        std::cout<<Color::NARANJA<< cont << " ";
         cont++;
     }
 
@@ -89,7 +90,7 @@ inline std::vector<unsigned char> AESCipher::encryptBlock(const std::vector<unsi
     shiftRows(state);
     addRoundKey(state, keys[10]);
     std::cout << cont << " ";
-    std::cout <<std::endl;
+    std::cout << Color::RESET <<std::endl;
     return state;
 }
 
@@ -157,7 +158,7 @@ inline void AESCipher::addRoundKey(std::vector<unsigned char>& state,const std::
 inline std::vector<std::vector<unsigned char>> AESCipher::generateRandomKey(const std::vector<unsigned char>& key) {
     const int Nr = 10; //rounds
     
-    std::cout <<"<<[ MAKING EXTENDED KEYS ]>>"<<std::endl;    
+    std::cout << Color::VERDE <<"<<[ MAKING EXTENDED KEYS ]>>"<< Color::RESET <<std::endl;    
     //expanded key to 44 words(4 bytes each)
     std::vector<unsigned char> expanded(176);
     
@@ -209,20 +210,20 @@ inline std::vector<unsigned char> generateSaveKeyBase(const std::string &filenam
     for (auto &byte : randomKey) {
         byte = static_cast<unsigned char>(dis(gen));
     }
-    std::cout <<"*** base key has generated ***"<<std::endl;
+    std::cout << Color::AMARILLO <<"*** base key has generated ***"<< Color::RESET <<std::endl;
     //generation file of key base
 
     for (unsigned char byte : randomKey) {
-        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+        std::cout << Color::CIAN << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << Color::RESET <<" ";
     }
     std::ofstream outFile(filename, std::ios::binary);
     if (!outFile) {
-        std::cerr<<"Error writing key to file"<<std::endl;
+        std::cerr<< Color::ROJO <<"Error writing key to file"<< Color::RESET <<std::endl;
         return {};
     } else {
         outFile.write(reinterpret_cast<const char*>(randomKey.data()),randomKey.size());
         outFile.close();
-        std::cout <<"*** base key has writed ***"<<std::endl;
+        std::cout<< Color::VERDE <<"-> [base key has writed]"<< Color::RESET <<std::endl;
         return randomKey;
     }
 }

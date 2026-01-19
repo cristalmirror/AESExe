@@ -3,9 +3,10 @@
 #include<vector>
 #include<cstring>
 #include<algorithm>
-#include <iomanip>
+#include<iomanip>
 #include"Cipher.hpp"
 #include"Decipher.hpp"
+#include"colorString.hpp"
 
 using namespace std;
 
@@ -18,7 +19,7 @@ public:
     static vector<vector<unsigned char>> readFileInBlocks(const string &filename){
         ifstream inFile(filename, ios::binary);
         if (!inFile) {
-            cerr<<"Error in open archive"<<endl;
+            cerr<< Color::ROJO <<"Error in open archive"<< Color::RESET <<endl;
             return{};
         }
 
@@ -55,16 +56,16 @@ void FileHandler::writeBlocksToFile(const string& filename, const vector<vector<
     ofstream outFile(filename,ios::binary);
     int cont = 0;
     if (!outFile) {
-        cerr<<"Error open file to write"<<endl;
+        cerr<< Color::ROJO <<"Error open file to write"<< Color::RESET <<endl;
         return;
     }
-    cout <<"*<<[writing binary bloks]>>*"<<endl;
+    cout <<Color::MAGENTA<<"*<<[writing binary bloks]>>*"<< Color::RESET<<endl;
     for (const auto& block: blocks) {
         outFile.write(reinterpret_cast<const char*>(block.data()), block.size());
     }
     
     outFile.close();
-    cout <<"*** Blocks => ["<< blocks.size() <<"] write in: "<< filename <<"***"<<endl;
+    cout << Color::NARANJA <<"*** Blocks => ["<< blocks.size() <<"] write in: "<< filename <<"***"<< Color::RESET<<endl;
 }
 
 //ends file determinations
@@ -80,11 +81,11 @@ vector<unsigned char> loadKeyFromFile(const string& filename) {
         throw runtime_error("Error al leer la clave desde el archivo: " + filename);
     }
 
-    cout << "Clave cargada desde el archivo (hexadecimal): ";
+    cout <<Color::VERDE <<"Clave cargada desde el archivo (hexadecimal): ";
     for (unsigned char byte : key) {
         cout << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
     }
-    cout << dec << endl;
+    cout << dec << Color::RESET <<endl;
     
     return key;
 }
@@ -94,21 +95,23 @@ void printBlock(const vector<unsigned char>& block, const string& label) {
     for (unsigned char byte : block) {
         cout << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
     }
-    cout << dec << endl;
+    cout << dec <<Color::RESET<< endl;
 }
 
 //function main 
 int main(int argc,char *argv[]) {
-    
+#ifdef _WIN32
+    initTerminalColors();
+#endif
     if (argc < 2) {
-        cerr <<"Uso: "<< argv[0] << "<nombre_de_archivo.txt>"<< endl;
+        cerr<< Color::ROJO <<"Uso: "<< argv[0] << "<nombre_de_archivo.txt>"<< Color::RESET <<endl;
         return 1;
     }
     
     string filename = argv[1];
     string filenameOutput = argv[2];
     vector<vector<unsigned char>> blocks =FileHandler::readFileInBlocks(filename);
-    cout <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << endl;
+    cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
 
     //Key AES of 16 bytes
     if (endsWith(filename,".txt")) {
@@ -118,10 +121,10 @@ int main(int argc,char *argv[]) {
         //cipher and write blocks
         for (size_t i = 0; i < blocks.size(); i++) {
             vector<unsigned char> encrypted = cipher.encryptBlock(blocks[i]);
-            printBlock(blocks[i], "Bloque original " + to_string(i));
-            printBlock(encrypted, "Bloque cifrado " + to_string(i));
+            printBlock(blocks[i], Color::NARANJA_NEGRO + "Bloque original " + to_string(i));
+            printBlock(encrypted, Color::AZUL_FONDO + "Bloque cifrado " + to_string(i));
             encryptedBlocks.push_back(encrypted);
-            cout << "***block "<< i <<"/"<<blocks.size()<<" encrypted ***"<<endl;
+            cout<< Color::CIAN << "***block "<< i <<"/"<<blocks.size()<<" encrypted ***"<< Color::RESET <<endl;
         
         }
 
@@ -137,15 +140,15 @@ int main(int argc,char *argv[]) {
             vector<vector<unsigned char>> decryptedBlocks;
             for (size_t i = 0; i < blocks.size(); i++) {
                 vector<unsigned char> decrypted = decipher.decryptBlock(blocks[i]);
-                printBlock(blocks[i], "Bloque cifrado " + std::to_string(i));
-                printBlock(decrypted, "Bloque descifrado " + std::to_string(i));
+                printBlock(blocks[i], Color::AZUL_FONDO + "Bloque cifrado " + std::to_string(i));
+                printBlock(decrypted,  Color::NARANJA_NEGRO + "Bloque descifrado " + std::to_string(i));
                 decryptedBlocks.push_back(decrypted);
-                cout << "*** Bloque " << i + 1 << "/" << blocks.size() << " descifrado ***" << endl;
+                cout << Color::CIAN << "*** Bloque " << i + 1 << "/" << blocks.size() << " descifrado ***" << Color::RESET <<endl;
             }
             FileHandler::writeBlocksToFile(filenameOutputDecrpyt, decryptedBlocks);
 
     } else{
-            cerr << "Extension de archivo no reconocida. Use .txt para cifrar o .aes para descifrar." << endl;
+            cerr << Color::ROJO << "Extension de archivo no reconocida. Use .txt para cifrar o .aes para descifrar." << Color::RESET <<endl;
             return 1;
     }
         

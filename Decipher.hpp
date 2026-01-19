@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include "Cipher.hpp"
-
+#include "colorString.hpp"
 class AESDecipher {
 public:
     static const unsigned char inv_sbox[256];
@@ -55,11 +55,11 @@ AESDecipher::AESDecipher(const std::vector<unsigned char> &key) {
 inline std::vector<unsigned char> AESDecipher::decryptBlock(const std::vector<unsigned char> &block) {
     std::vector<unsigned char> state = block;
     int cont=10;
-    std::cout <<"[ROUND]: ";
+    std::cout <<Color::NARANJA_NEGRO <<"[ROUND]: "<< Color::RESET;
     addRoundKey(state, keys[10]);
     invShiftRows(state);
     invSubBytes(state);
-    std::cout << cont << " ";
+    std::cout <<Color::NARANJA << cont << " ";
     cont--;
     for (int round = 9; round >= 1; round-- ) {
         addRoundKey(state, keys[round]);
@@ -71,7 +71,7 @@ inline std::vector<unsigned char> AESDecipher::decryptBlock(const std::vector<un
     }
     addRoundKey(state, keys[0]);
     std::cout << cont << " ";
-    std::cout <<std::endl;
+    std::cout << Color::RESET <<std::endl;
     return state;
 }
 
@@ -150,7 +150,7 @@ inline std::vector<std::vector<unsigned char>> AESDecipher::generateRandomKey(co
 
     const int Nr = 10; //rounds
     
-    std::cout <<"<<[ MAKING EXTENDED KEYS ]>>"<<std::endl;    
+    std::cout<< Color::VERDE <<"<<[ MAKING EXTENDED KEYS ]>>"<< Color::RESET <<std::endl;    
     //expanded key
     std::vector<unsigned char> expanded(176);
     //copy all base keys in the first 4 words

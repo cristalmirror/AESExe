@@ -107,14 +107,13 @@ int main(int argc,char *argv[]) {
         cerr<< Color::ROJO <<"Uso: "<< argv[0] << "<nombre_de_archivo.txt>"<< Color::RESET <<endl;
         return 1;
     }
-    
-    string filename = argv[1];
-    string filenameOutput = argv[2];
+
+    string filename = argv[1];   
     vector<vector<unsigned char>> blocks =FileHandler::readFileInBlocks(filename);
     cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
-
     //Key AES of 16 bytes
     if (endsWith(filename,".txt")) {
+        string filenameOutput = argv[2];
         vector<unsigned char> key = generateSaveKeyBase("key.aes");
         AESCipher cipher(key);
         vector<vector<unsigned char>> encryptedBlocks;
@@ -131,26 +130,54 @@ int main(int argc,char *argv[]) {
         FileHandler::writeBlocksToFile(filenameOutput, encryptedBlocks);
     } else if (endsWith(filename,".aes")) {
             
-            //decipher
-            string keyFilename = argv[2];
-            string filenameOutputDecrpyt = argv[3];
-            vector<unsigned char> key = loadKeyFromFile(keyFilename);
-            AESDecipher decipher(key);
+        //decipher
+        string keyFilename = argv[2];
+        string filenameOutputDecrpyt = argv[3];
+        vector<unsigned char> key = loadKeyFromFile(keyFilename);
+        AESDecipher decipher(key);
             
-            vector<vector<unsigned char>> decryptedBlocks;
-            for (size_t i = 0; i < blocks.size(); i++) {
-                vector<unsigned char> decrypted = decipher.decryptBlock(blocks[i]);
-                printBlock(blocks[i], Color::AZUL_FONDO + "Bloque cifrado " + std::to_string(i));
-                printBlock(decrypted,  Color::NARANJA_NEGRO + "Bloque descifrado " + std::to_string(i));
-                decryptedBlocks.push_back(decrypted);
-                cout << Color::CIAN << "*** Bloque " << i + 1 << "/" << blocks.size() << " descifrado ***" << Color::RESET <<endl;
-            }
-            FileHandler::writeBlocksToFile(filenameOutputDecrpyt, decryptedBlocks);
+        vector<vector<unsigned char>> decryptedBlocks;
+        for (size_t i = 0; i < blocks.size(); i++) {
+            vector<unsigned char> decrypted = decipher.decryptBlock(blocks[i]);
+            printBlock(blocks[i], Color::AZUL_FONDO + "Bloque cifrado " + std::to_string(i));
+            printBlock(decrypted,  Color::NARANJA_NEGRO + "Bloque descifrado " + std::to_string(i));
+            decryptedBlocks.push_back(decrypted);
+            cout << Color::CIAN << "*** Bloque " << i + 1 << "/" << blocks.size() << " descifrado ***" << Color::RESET <<endl;
+        }
+        FileHandler::writeBlocksToFile(filenameOutputDecrpyt, decryptedBlocks);
 
-    } else{
-            cerr << Color::ROJO << "Extension de archivo no reconocida. Use .txt para cifrar o .aes para descifrar." << Color::RESET <<endl;
-            return 1;
+    } else if(filename == "-m" || filename =="--manual" || filename == "-h"|| filename =="--help") {
+        cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
+        cout << Color::NARANJA << "             USER MANUAL - AES-128 TOOL                  " << Color::RESET << endl;
+        cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
+
+        cout << endl << Color::AZUL_FONDO<< " DESCRIPTION: " << Color::RESET << endl;
+        cout << " This tool allows you to encrypt plain text files (.txt) " << endl;
+        cout << " and decrypt binary files (.aes) using the industry " << endl;
+        cout << " standard AES-128 block cipher algorithm." << endl;
+
+        cout << endl << Color::AZUL_FONDO << " USAGE MODES: " << Color::RESET << endl;
+    
+        cout << endl << Color::VERDE << " 1. ENCRYPT:" << Color::RESET << endl;
+        cout << "    Command: " << argv[0] << " <input.txt> <output.aes>" << endl;
+        cout << "    Note: A random key will be generated in 'key.aes' automatically." << endl;
+
+        cout << endl << Color::VERDE << " 2. DECRYPT:" << Color::RESET << endl;
+        cout << "    Command: " << argv[0] << " <input.aes> <key.aes> <output.txt>" << endl;
+        cout << "    Note: Requires the specific key file generated during encryption." << endl;
+
+        cout << endl << Color::AZUL_FONDO << " TECHNICAL DETAILS: " << Color::RESET << endl;
+        cout << " - Cipher Block Size: " << Color::NARANJA << "128 bits (16 bytes)" << Color::RESET << endl;
+        cout << " - Cipher Rounds:     " << Color::NARANJA << "10 rounds" << Color::RESET << endl;
+        cout << " - Support:           " << Color::NARANJA << "Cross-platform (Linux / Windows)" << Color::RESET << endl;
+
+        cout << endl << Color::NARANJA << "==========================================================" << Color::RESET << endl;
+        cout << " Developed in Argentina - 2026 for: https://github.com/cristalmirror" << endl;
+
+    } else {
+        cerr << Color::ROJO << "Extension de archivo no reconocida. Use .txt para cifrar o .aes para descifrar." << Color::RESET <<endl;
+        return 1;
     }
-        
+   
     return 0;
 }

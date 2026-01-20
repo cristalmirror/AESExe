@@ -148,7 +148,7 @@ int main(int argc,char *argv[]) {
 
     } else if(filename == "-m" || filename =="--manual" || filename == "-h"|| filename =="--help") {
         cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
-        cout << Color::NARANJA << "             USER MANUAL - AES-128 TOOL                  " << Color::RESET << endl;
+        cout << Color::NARANJA << "          USER MANUAL - AES-128 TOOL AESEXE V1.0          " << Color::RESET << endl;
         cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
 
         cout << endl << Color::AZUL_FONDO<< " DESCRIPTION: " << Color::RESET << endl;

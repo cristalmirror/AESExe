@@ -97,6 +97,15 @@ void printBlock(const vector<unsigned char>& block, const string& label) {
     cout << dec <<Color::RESET<< endl;
 }
 
+//delete prints in console
+void deletePrintsLine(int cantidad) {
+    for (int i = 0; i < cantidad; ++i) {
+        // \33[A  -> move cursor up one line
+        // \33[2K -> delete entire line
+        // \r     -> move cursor to the beginning of the line
+        std::cout << "\33[A\33[2K\r" << std::flush;
+    }
+}
 //function main 
 int main(int argc,char *argv[]) {
 #ifdef _WIN32
@@ -112,6 +121,7 @@ int main(int argc,char *argv[]) {
     cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
     //manual of user
     if(filename == "-m" || filename =="--manual" || filename == "-h"|| filename =="--help") {
+        deletePrintsLine(2);
         cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
         cout << Color::NARANJA << "          USER MANUAL - AES-128 TOOL AESEXE V1.1          " << Color::RESET << endl;
         cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;

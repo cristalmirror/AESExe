@@ -70,8 +70,7 @@ void FileHandler::writeBlocksToFile(const string& filename, const vector<vector<
 
 //ends file determinations
 bool endsWith(const string& str, const string& suffix) {
-    return str.size() >= suffix.size() &&
-        str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+    return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 //readfile of key.aes
 vector<unsigned char> loadKeyFromFile(const string& filename) {
@@ -108,11 +107,39 @@ int main(int argc,char *argv[]) {
         return 1;
     }
 
-    string filename = argv[1];   
+    string filename = argv[1]; 
     vector<vector<unsigned char>> blocks =FileHandler::readFileInBlocks(filename);
     cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
-    //Key AES of 16 bytes
-    if (endsWith(filename,".txt")) {
+    //manual of user
+    if(filename == "-m" || filename =="--manual" || filename == "-h"|| filename =="--help") {
+        cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
+        cout << Color::NARANJA << "          USER MANUAL - AES-128 TOOL AESEXE V1.1          " << Color::RESET << endl;
+        cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
+
+        cout << endl << Color::AZUL_FONDO<< " DESCRIPTION: " << Color::RESET << endl;
+        cout << " This tool allows you to encrypt files " << endl;
+        cout << " and decrypt binary files (.aes) using the industry " << endl;
+        cout << " standard AES-128 block cipher algorithm." << endl;
+
+        cout << endl << Color::AZUL_FONDO << " USAGE MODES EXAMPLE: " << Color::RESET << endl;
+    
+        cout << endl << Color::VERDE << " 1. ENCRYPT:" << Color::RESET << endl;
+        cout << "    Command: " << argv[0] << " <input.txt> <output.aes>" << endl;
+        cout << "    Note: A random key will be generated in 'key.aes' automatically." << endl;
+
+        cout << endl << Color::VERDE << " 2. DECRYPT:" << Color::RESET << endl;
+        cout << "    Command: " << argv[0] << " <input.aes> <key.aes> <output.txt>" << endl;
+        cout << "    Note: Requires the specific key file generated during encryption." << endl;
+
+        cout << endl << Color::AZUL_FONDO << " TECHNICAL DETAILS: " << Color::RESET << endl;
+        cout << " - Cipher Block Size: " << Color::NARANJA << "128 bits (16 bytes)" << Color::RESET << endl;
+        cout << " - Cipher Rounds:     " << Color::NARANJA << "10 rounds" << Color::RESET << endl;
+        cout << " - Support:           " << Color::NARANJA << "Cross-platform (Linux / Windows)" << Color::RESET << endl;
+
+        cout << endl << Color::NARANJA << "==========================================================" << Color::RESET << endl;
+        cout << " Developed in Argentina - 2026 for: https://github.com/cristalmirror" << endl;
+        goto fin_prog;
+    } else if (!endsWith(filename,".aes")) {
         string filenameOutput = argv[2];
         vector<unsigned char> key = generateSaveKeyBase("key.aes");
         AESCipher cipher(key);
@@ -146,38 +173,10 @@ int main(int argc,char *argv[]) {
         }
         FileHandler::writeBlocksToFile(filenameOutputDecrpyt, decryptedBlocks);
 
-    } else if(filename == "-m" || filename =="--manual" || filename == "-h"|| filename =="--help") {
-        cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
-        cout << Color::NARANJA << "          USER MANUAL - AES-128 TOOL AESEXE V1.0          " << Color::RESET << endl;
-        cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
-
-        cout << endl << Color::AZUL_FONDO<< " DESCRIPTION: " << Color::RESET << endl;
-        cout << " This tool allows you to encrypt plain text files (.txt) " << endl;
-        cout << " and decrypt binary files (.aes) using the industry " << endl;
-        cout << " standard AES-128 block cipher algorithm." << endl;
-
-        cout << endl << Color::AZUL_FONDO << " USAGE MODES: " << Color::RESET << endl;
-    
-        cout << endl << Color::VERDE << " 1. ENCRYPT:" << Color::RESET << endl;
-        cout << "    Command: " << argv[0] << " <input.txt> <output.aes>" << endl;
-        cout << "    Note: A random key will be generated in 'key.aes' automatically." << endl;
-
-        cout << endl << Color::VERDE << " 2. DECRYPT:" << Color::RESET << endl;
-        cout << "    Command: " << argv[0] << " <input.aes> <key.aes> <output.txt>" << endl;
-        cout << "    Note: Requires the specific key file generated during encryption." << endl;
-
-        cout << endl << Color::AZUL_FONDO << " TECHNICAL DETAILS: " << Color::RESET << endl;
-        cout << " - Cipher Block Size: " << Color::NARANJA << "128 bits (16 bytes)" << Color::RESET << endl;
-        cout << " - Cipher Rounds:     " << Color::NARANJA << "10 rounds" << Color::RESET << endl;
-        cout << " - Support:           " << Color::NARANJA << "Cross-platform (Linux / Windows)" << Color::RESET << endl;
-
-        cout << endl << Color::NARANJA << "==========================================================" << Color::RESET << endl;
-        cout << " Developed in Argentina - 2026 for: https://github.com/cristalmirror" << endl;
-
     } else {
         cerr << Color::ROJO << "Extension de archivo no reconocida. Use .txt para cifrar o .aes para descifrar." << Color::RESET <<endl;
         return 1;
     }
-   
+    fin_prog:
     return 0;
 }

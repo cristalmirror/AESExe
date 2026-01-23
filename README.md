@@ -8,7 +8,7 @@ How to Use:
 
 Encrypt exaple:
 
-`./aesexe file.txt key.aes`
+`./aesexe file.txt encrypted.aes`
 
 Decrypt example:
 

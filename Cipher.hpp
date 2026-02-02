@@ -11,24 +11,24 @@ class AESCipher {
 public:
     static const unsigned char sbox[256];
     //constructor
-    AESCipher(const std::vector<unsigned char>& key);
+    AESCipher(const std::vector<unsigned char> &key);
     //runing the parts of AES algoritm
-    std::vector<unsigned char> encryptBlock(const std::vector<unsigned char>& block);
+    std::vector<unsigned char> encryptBlock(const std::vector<unsigned char> &block);
     //make keys
-    std::vector<std::vector<unsigned char>> generateRandomKey(const std::vector<unsigned char>& key);
+    std::vector<std::vector<unsigned char>> generateRandomKey(const std::vector<unsigned char> &key);
     
 private:
 
     std::vector<std::vector<unsigned char>> keys;
-    void subBytes(std::vector<unsigned char>& state);
+    void subBytes(std::vector<unsigned char> &state);
     //method shitRows od AES
-    void shiftRows(std::vector<unsigned char>& state);
+    void shiftRows(std::vector<unsigned char> &state);
     // Multiplies a byte by 2 in the finite field GF(2^8)
     unsigned char xtime(unsigned char x);
     //mixColumns method
-    void mixColumns(std::vector<unsigned char>& state);
+    void mixColumns(std::vector<unsigned char> &state);
     //addRoundKey 
-    void addRoundKey(std::vector<unsigned char>& state,const std::vector<unsigned char>& key);
+    void addRoundKey(std::vector<unsigned char> &state,const std::vector<unsigned char> &key);
     
 };
 
@@ -66,12 +66,12 @@ const unsigned char AESCipher::sbox[256] = {
         0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68,
         0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
-inline AESCipher::AESCipher(const std::vector<unsigned char>& key) {
+inline AESCipher::AESCipher(const std::vector<unsigned char> &key) {
     this->keys = generateRandomKey(key);
 }
 
  //runing the parts of AES algoritm
-inline std::vector<unsigned char> AESCipher::encryptBlock(const std::vector<unsigned char>& block) {
+inline std::vector<unsigned char> AESCipher::encryptBlock(const std::vector<unsigned char> &block) {
     std::vector<unsigned char> state = block;
     int cont=0;
     std::cout <<Color::NARANJA_NEGRO <<"[ROUND]: " << Color::RESET;
@@ -94,7 +94,7 @@ inline std::vector<unsigned char> AESCipher::encryptBlock(const std::vector<unsi
     return state;
 }
 
-inline void AESCipher::subBytes(std::vector<unsigned char>& state) {
+inline void AESCipher::subBytes(std::vector<unsigned char> &state) {
         
     for (size_t i = 0; i < state.size(); i++) {
         state[i] = AESCipher::sbox[state[i]];
@@ -102,7 +102,7 @@ inline void AESCipher::subBytes(std::vector<unsigned char>& state) {
 }
 
 //method shitRows od AES
-inline void AESCipher::shiftRows(std::vector<unsigned char>& state) {
+inline void AESCipher::shiftRows(std::vector<unsigned char> &state) {
     std::vector<unsigned char> temp(16);
     
     //first file(without changes)

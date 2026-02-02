@@ -104,7 +104,7 @@ void deletePrintsLine(int cantidad) {
         // \33[2K -> delete entire line
         // \r     -> move cursor to the beginning of the line
         std::cout << "\33[A\33[2K\r" << std::flush;
-    }
+    } 
 }
 //function main 
 int main(int argc,char *argv[]) {

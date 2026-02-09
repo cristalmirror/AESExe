@@ -7,6 +7,7 @@
 #include"Cipher.hpp"
 #include"Decipher.hpp"
 #include"colorString.hpp"
+//#include"chacha20.hpp" making option for chacha20
 
 using namespace std;
 
@@ -123,7 +124,7 @@ int main(int argc,char *argv[]) {
     if(filename == "-m" || filename =="--manual" || filename == "-h"|| filename =="--help") {
         deletePrintsLine(2);
         cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
-        cout << Color::NARANJA << "          USER MANUAL - AES-128 TOOL AESEXE V1.1          " << Color::RESET << endl;
+        cout << Color::NARANJA << "          USER MANUAL - AES-128 TOOL AESEXE V1.2          " << Color::RESET << endl;
         cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
 
         cout << endl << Color::AZUL_FONDO<< " DESCRIPTION: " << Color::RESET << endl;
@@ -184,7 +185,7 @@ int main(int argc,char *argv[]) {
         FileHandler::writeBlocksToFile(filenameOutputDecrpyt, decryptedBlocks);
 
     } else {
-        cerr << Color::ROJO << "Extension de archivo no reconocida. Use .txt para cifrar o .aes para descifrar." << Color::RESET <<endl;
+        cerr << Color::ROJO << "Extension de archivo no reconocida o argumento invalido.\n Use .txt para cifrar o .aes para descifrar o -m para ver el manual." << Color::RESET <<endl;
         return 1;
     }
     fin_prog:

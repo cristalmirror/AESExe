@@ -10,12 +10,13 @@
 class cipherChacha20 {
 private:
     uint32_t state[16];//internal state 512 bits
-    std::vector<unsigned char> keyGeneratorCC20();
     uint32_t ROTL(uint32_t v, int c);
+    void quarterRound(uint32_t &a, uint32_t &b, uint32_t &c, uint32_t &d);
 public:
     cipherChacha20();
-    void stupInitialState(cosnt std::vector<unsigned char> &key,uint32_t counter, const std::vector<unsigned char> &nonce);
-    void encryptInCC20(std::vector<uint32_t> &plaintext);
+    void setupInitialState(const std::vector<unsigned char> &key,uint32_t counter, const std::vector<unsigned char> &nonce);
+    void encryptInCC20(std::vector<unsigned char> &block);
+    std::vector<unsigned char> keyGeneratorCC20();
 };
 
 
@@ -25,11 +26,11 @@ inline cipherChacha20::cipherChacha20() {
     for (int i = 0; i < 16; i++) state[i] = 0;
 }
 
-inline void cipherChacha20::encryptInCC20(std::vector<uint8_t> block) {
+inline void cipherChacha20::encryptInCC20(std::vector<unsigned char> &block) {
     uint32_t workingState[16];
     uint32_t initialState[16];
 
-    for(int i = 0; i < 16; i++) initialState[i] = workingStste[i] = state[i];
+    for(int i = 0; i < 16; i++) initialState[i] = workingState[i] = state[i];
 
     for(int i = 0; i < 10; i++) {
       // Rondas de Columnas
@@ -68,7 +69,7 @@ inline void cipherChacha20::quarterRound(uint32_t &a, uint32_t &b, uint32_t &c, 
     c += d; b ^= c; b = ROTL(b, 7);
 }
 
-inline void cipherChacha20::stupInitialState(const std::vector<unsigned char> &key, uint32_t counter,const std::vector<unsigned char> &nonce) {
+inline void cipherChacha20::setupInitialState(const std::vector<unsigned char> &key, uint32_t counter,const std::vector<unsigned char> &nonce) {
     //const words 0-3 
     state[0]= 0x61707865;
     state[1] = 0x3320646e; 
@@ -98,7 +99,7 @@ inline std::vector<unsigned char> cipherChacha20::keyGeneratorCC20(){
     std::uniform_int_distribution<>dis(0,255); //distribution
 
     //load the vector with aleatory numbers
-    for (i = 0; i < 32; i++) {
+    for (int i = 0; i < 32; i++) {
         randomKey[i] = static_cast<unsigned char>(dis(gen));
     }
     std::cout << Color::AMARILLO <<"[CC20 TYPE]: *** base key has generated ***"<< Color::RESET <<std::endl;
@@ -109,7 +110,7 @@ inline std::vector<unsigned char> cipherChacha20::keyGeneratorCC20(){
         std::cout << Color::CIAN << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << Color::RESET <<" ";
     }
     //write binary archive
-    std::ofstream outFile(filename, std::ios::binary);
+    std::ofstream outFile("key.cc20", std::ios::binary);
     if (!outFile) {
         std::cerr<< Color::ROJO <<"[CC20 TYPE]: Error writing key to file"<< Color::RESET <<std::endl;
         return {};

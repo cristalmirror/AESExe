@@ -7,51 +7,89 @@
 #include"Cipher.hpp"
 #include"Decipher.hpp"
 #include"colorString.hpp"
-//#include"chacha20.hpp" making option for chacha20
+#include"chacha20.hpp" 
 
 using namespace std;
 
 const int BLOCK_SIZE = 16;
+const size_t CHACHA_BLOCK_SIZE = 64;
 
 /*class that craate the bocks*/
 class FileHandler {
 public:
     //mipulation of archive
-    static vector<vector<unsigned char>> readFileInBlocks(const string &filename){
-        ifstream inFile(filename, ios::binary);
-        if (!inFile) {
-            cerr<< Color::ROJO <<"Error in open archive"<< Color::RESET <<endl;
-            return{};
-        }
-
-        //put the bits of archive in blocks vectors
-        vector<vector<unsigned char>> blocks;
-        vector<unsigned char> buffer(BLOCK_SIZE,0);
-        while(inFile.read(reinterpret_cast<char*>(buffer.data()),BLOCK_SIZE)) {
-            blocks.push_back(buffer);
-        }
-
-        //process last block if so small
-        size_t bytesRead = inFile.gcount();
-        if (bytesRead > 0) {
-            vector<unsigned char> lastBlock(BLOCK_SIZE,0);
-            for (size_t i = 0; i < bytesRead; i++) {
-                lastBlock[i] = buffer[i];
-            }
-            blocks.push_back(lastBlock);
-            /* last block procesing
-            buffer.assign(BLOCK_SIZE,0); //push 0 if is necesary
-            inFile.read(reinterpret_cast<char*>(buffer.data()),bytesRead);
-            blocks.push_back(buffer);
-            */
-        }
-        inFile.close();
-        return blocks;
-    }
+    static vector<vector<unsigned char>> readFileInBlocksCC20(const string &filename, size_t blockSize);
+    static vector<vector<unsigned char>> readFileInBlocks(const string &filename);
     static void writeBlocksToFile(const string& filename, const vector<vector<unsigned char>>& blocks);
     
     
 };
+
+vector<vector<unsigned char>> FileHandler::readFileInBlocksCC20(const string &filename, size_t blockSize) {
+    ifstream inFile(filename, ios::binary);
+    if (!inFile) {
+        cerr << Color::ROJO <<"Error in open archive"<< Color::RESET <<endl;
+        return{};
+    }
+
+    //put the bits of archive in blocks vectors
+    vector<vector<unsigned char>> blocks;
+    vector<unsigned char> buffer(blockSize);
+    while(inFile.read(reinterpret_cast<char*>(buffer.data()),blockSize)) {
+        blocks.push_back(buffer);
+    }
+
+    //process last block if so small
+    size_t bytesRead = inFile.gcount();
+    if (bytesRead > 0) {
+        vector<unsigned char> lastBlock(BLOCK_SIZE,0);
+        for (size_t i = 0; i < bytesRead; i++) {
+            lastBlock[i] = buffer[i];
+        }
+        blocks.push_back(lastBlock);
+        /* last block procesing
+        buffer.assign(BLOCK_SIZE,0); //push 0 if is necesary
+        inFile.read(reinterpret_cast<char*>(buffer.data()),bytesRead);
+        blocks.push_back(buffer);
+        */
+    }
+    inFile.close();
+    return blocks;
+
+}
+
+//mipulation of archive
+vector<vector<unsigned char>> FileHandler::readFileInBlocks(const string &filename) {
+    ifstream inFile(filename, ios::binary);
+    if (!inFile) {
+        cerr << Color::ROJO <<"Error in open archive"<< Color::RESET <<endl;
+        return{};
+    }
+
+    //put the bits of archive in blocks vectors
+    vector<vector<unsigned char>> blocks;
+    vector<unsigned char> buffer(BLOCK_SIZE,0);
+    while(inFile.read(reinterpret_cast<char*>(buffer.data()),BLOCK_SIZE)) {
+        blocks.push_back(buffer);
+    }
+
+    //process last block if so small
+    size_t bytesRead = inFile.gcount();
+    if (bytesRead > 0) {
+        vector<unsigned char> lastBlock(BLOCK_SIZE,0);
+        for (size_t i = 0; i < bytesRead; i++) {
+            lastBlock[i] = buffer[i];
+        }
+        blocks.push_back(lastBlock);
+        /* last block procesing
+        buffer.assign(BLOCK_SIZE,0); //push 0 if is necesary
+        inFile.read(reinterpret_cast<char*>(buffer.data()),bytesRead);
+        blocks.push_back(buffer);
+        */
+    }
+    inFile.close();
+    return blocks;
+}
 //write blocks in binary file
 void FileHandler::writeBlocksToFile(const string& filename, const vector<vector<unsigned char>>& blocks) {
     ofstream outFile(filename,ios::binary);
@@ -107,6 +145,11 @@ void deletePrintsLine(int cantidad) {
         std::cout << "\33[A\33[2K\r" << std::flush;
     } 
 }
+
+void errorMessageArgs() {
+     cerr << Color::ROJO << "Extension de archivo no reconocida o argumento invalido.\n Use .txt para cifrar o .aes para descifrar o -m para ver el manual." << Color::RESET <<endl;
+}
+
 //function main 
 int main(int argc,char *argv[]) {
 #ifdef _WIN32
@@ -117,8 +160,16 @@ int main(int argc,char *argv[]) {
         return 1;
     }
 
+    //globals variables 
     string filename = argv[1]; 
     vector<vector<unsigned char>> blocks =FileHandler::readFileInBlocks(filename);
+    string modeAlg;
+
+    //setting algorthim mode
+    if (argc == 3) {
+        modeAlg = argv[3];
+    }
+
     cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
     //manual of user
     if(filename == "-m" || filename =="--manual" || filename == "-h"|| filename =="--help") {
@@ -150,6 +201,33 @@ int main(int argc,char *argv[]) {
         cout << endl << Color::NARANJA << "==========================================================" << Color::RESET << endl;
         cout << " Developed in Argentina - 2026 for: https://github.com/cristalmirror" << endl;
         goto fin_prog;
+    } else if (modeAlg == "-cc20") {//chacha20 option of code
+        vector<vector<uint8_t>> blocksCC20 = FileHandler::readFileInBlocksCC20(filename,CHACHA_BLOCK_SIZE);
+        cipherChacha20 cipher;
+        vector<uint8_t> key;
+        vector<uint8_t> nonce ={0,0,0,0, 0,0,0,0, 0,0,0,0}; //Nonce de 12 bytes
+        string filenameOutput = argv[2];
+
+        if(!endsWith(filename,".cc20")) {
+            //make new key
+            key = cipher.keyGeneratorCC20();
+            uint32_t counter = 1;
+            cipher.setupInitialState(key, counter, nonce);
+            vector<vector<uint8_t>> encryptBlocks;
+
+            for (size_t i = 0; i < blocksCC20.size(); i++) {
+                cipher.encryptInCC20(blocksCC20[i]); //Aply 20 rounds XOR
+                encryptBlocks.push_back(blocksCC20[i]);
+                std::cout << Color::CIAN << "*** Bloque " << i << " cifrado ***" << Color::RESET << std::endl;
+            }
+
+            FileHandler::writeBlocksToFile(filenameOutput, encryptBlocks);
+
+        } else {
+            errorMessageArgs();
+            return 1;
+        }
+
     } else if (!endsWith(filename,".aes")) {
         string filenameOutput = argv[2];
         vector<unsigned char> key = generateSaveKeyBase("key.aes");
@@ -185,7 +263,7 @@ int main(int argc,char *argv[]) {
         FileHandler::writeBlocksToFile(filenameOutputDecrpyt, decryptedBlocks);
 
     } else {
-        cerr << Color::ROJO << "Extension de archivo no reconocida o argumento invalido.\n Use .txt para cifrar o .aes para descifrar o -m para ver el manual." << Color::RESET <<endl;
+        errorMessageArgs();
         return 1;
     }
     fin_prog:

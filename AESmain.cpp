@@ -42,7 +42,7 @@ vector<vector<unsigned char>> FileHandler::readFileInBlocksCC20(const string &fi
     //process last block if so small
     size_t bytesRead = inFile.gcount();
     if (bytesRead > 0) {
-        vector<unsigned char> lastBlock(BLOCK_SIZE,0);
+        vector<unsigned char> lastBlock(blockSize,0);
         for (size_t i = 0; i < bytesRead; i++) {
             lastBlock[i] = buffer[i];
         }
@@ -165,10 +165,10 @@ int main(int argc,char *argv[]) {
     vector<vector<unsigned char>> blocks =FileHandler::readFileInBlocks(filename);
     string modeAlg;
 
-    //setting algorthim mode
-    if (argc == 3) {
+    //Checking the option for chacha20
+    if (argc == 4) {
         modeAlg = argv[3];
-    }
+    } 
 
     cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
     //manual of user
@@ -202,6 +202,7 @@ int main(int argc,char *argv[]) {
         cout << " Developed in Argentina - 2026 for: https://github.com/cristalmirror" << endl;
         goto fin_prog;
     } else if (modeAlg == "-cc20") {//chacha20 option of code
+        cout << Color::NARANJA_NEGRO << "CHACHA20 MODE RUNING" << Color::RESET << endl;
         vector<vector<uint8_t>> blocksCC20 = FileHandler::readFileInBlocksCC20(filename,CHACHA_BLOCK_SIZE);
         cipherChacha20 cipher;
         vector<uint8_t> key;

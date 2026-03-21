@@ -168,9 +168,10 @@ int main(int argc,char *argv[]) {
     //Checking the option for chacha20
     if (argc == 4) {
         modeAlg = argv[3];
-    } 
+    } else {
+        cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
+    }
 
-    cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
     //manual of user
     if(filename == "-m" || filename =="--manual" || filename == "-h"|| filename =="--help") {
         deletePrintsLine(2);
@@ -204,6 +205,9 @@ int main(int argc,char *argv[]) {
     } else if (modeAlg == "-cc20") {//chacha20 option of code
         cout << Color::NARANJA_NEGRO << "CHACHA20 MODE RUNING" << Color::RESET << endl;
         vector<vector<uint8_t>> blocksCC20 = FileHandler::readFileInBlocksCC20(filename,CHACHA_BLOCK_SIZE);
+
+        cout<< Color::AMARILLO <<"se leyeron "<< blocksCC20.size() << " bloques de "<< CHACHA_BLOCK_SIZE <<" bytes." << Color::RESET <<endl;
+        
         cipherChacha20 cipher;
         vector<uint8_t> key;
         vector<uint8_t> nonce ={0,0,0,0, 0,0,0,0, 0,0,0,0}; //Nonce de 12 bytes

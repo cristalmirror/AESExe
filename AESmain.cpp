@@ -140,10 +140,12 @@ vector<unsigned char> loadKeyFromFile(const string& filename, const int opt) {
                 cout << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
             }
             cout << dec << Color::RESET << endl;
+            return key;
         }
-        default:
+        default: {
             cout << Color::ROJO << "Error: option invalid to load key " << Color::RESET << endl;
-        break;
+            return {};
+        }
         
     }
 }
@@ -186,10 +188,12 @@ int main(int argc,char *argv[]) {
     string modeAlg;
 
     //Checking the option for chacha20
-    if (argc == 4) {
-        modeAlg = argv[3];
-    } else {
-        cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
+    switch(argc) {
+        case 4:  modeAlg = argv[3]; break;
+        case 5:  modeAlg = argv[4]; break;
+        default: 
+            cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
+        break;
     }
 
     //manual of user
@@ -251,12 +255,16 @@ int main(int argc,char *argv[]) {
 
         } else if (endsWith(filename,".cc20")) { //decrypt code of chacha20
             string keyFilename = argv[2];
+            string fileNameOutput = argv[3];
             vector<unsigned char> key = loadKeyFromFile(keyFilename, 2);
             cipher.setupInitialState(key, 1, nonce);
 
             for (auto &block : blocksCC20) {
-                
+                cipher.encryptInCC20(block);
             }
+
+            FileHandler::writeBlocksToFile(fileNameOutput, blocksCC20);
+        
         } else {
             errorMessageArgs();
             return 1;

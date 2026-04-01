@@ -112,20 +112,40 @@ bool endsWith(const string& str, const string& suffix) {
     return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 //readfile of key.aes
-vector<unsigned char> loadKeyFromFile(const string& filename) {
+vector<unsigned char> loadKeyFromFile(const string& filename, const int opt) {
     ifstream keyFile(filename, ios::binary);
-    vector<unsigned char> key(16);
-    if (!keyFile.read(reinterpret_cast<char*>(key.data()), 16)) {
-        throw runtime_error("Error al leer la clave desde el archivo: " + filename);
-    }
+    switch (opt) {
+        case 1: {
+            vector<unsigned char> key(16);
+            if (!keyFile.read(reinterpret_cast<char*>(key.data()), 16)) {
+                throw runtime_error("Error al leer la clave desde el archivo: " + filename);
+            }
 
-    cout <<Color::VERDE <<"Clave cargada desde el archivo (hexadecimal): ";
-    for (unsigned char byte : key) {
-        cout << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
-    }
-    cout << dec << Color::RESET <<endl;
+            cout <<Color::VERDE <<"Clave cargada desde el archivo (hexadecimal): ";
+            for (unsigned char byte : key) {
+                cout << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
+            }
+            cout << dec << Color::RESET <<endl;
     
-    return key;
+            return key;
+        }
+        case 2: { //CHACHA20 MODE
+            vector<unsigned char> key(32);
+            if (!keyFile.read(reinterpret_cast<char*>(key.data()), 32)) {
+                throw runtime_error("Error: el archvio" + filename + " no contiene una clave de 32 baytes.");         
+            }
+
+            cout << Color::VERDE <<"[CC20]: clave cargada (hex): ";
+            for (unsigned char byte : key) {
+                cout << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
+            }
+            cout << dec << Color::RESET << endl;
+        }
+        default:
+            cout << Color::ROJO << "Error: option invalid to load key " << Color::RESET << endl;
+        break;
+        
+    }
 }
 
 void printBlock(const vector<unsigned char>& block, const string& label) {
@@ -211,9 +231,10 @@ int main(int argc,char *argv[]) {
         cipherChacha20 cipher;
         vector<uint8_t> key;
         vector<uint8_t> nonce ={0,0,0,0, 0,0,0,0, 0,0,0,0}; //Nonce de 12 bytes
-        string filenameOutput = argv[2];
+       
 
         if(!endsWith(filename,".cc20")) {
+            string filenameOutput = argv[2];
             //make new key
             key = cipher.keyGeneratorCC20();
             uint32_t counter = 1;
@@ -228,6 +249,14 @@ int main(int argc,char *argv[]) {
 
             FileHandler::writeBlocksToFile(filenameOutput, encryptBlocks);
 
+        } else if (endsWith(filename,".cc20")) { //decrypt code of chacha20
+            string keyFilename = argv[2];
+            vector<unsigned char> key = loadKeyFromFile(keyFilename, 2);
+            cipher.setupInitialState(key, 1, nonce);
+
+            for (auto &block : blocksCC20) {
+                
+            }
         } else {
             errorMessageArgs();
             return 1;
@@ -254,7 +283,7 @@ int main(int argc,char *argv[]) {
         //decipher
         string keyFilename = argv[2];
         string filenameOutputDecrpyt = argv[3];
-        vector<unsigned char> key = loadKeyFromFile(keyFilename);
+        vector<unsigned char> key = loadKeyFromFile(keyFilename, 1);
         AESDecipher decipher(key);
             
         vector<vector<unsigned char>> decryptedBlocks;

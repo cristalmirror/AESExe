@@ -200,7 +200,7 @@ int main(int argc,char *argv[]) {
     if(filename == "-m" || filename =="--manual" || filename == "-h"|| filename =="--help") {
         deletePrintsLine(2);
         cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
-        cout << Color::NARANJA << "          USER MANUAL - AES-128 TOOL AESEXE V1.2          " << Color::RESET << endl;
+        cout << Color::NARANJA << "          USER MANUAL - AES-128 TOOL AESEXE V1.3          " << Color::RESET << endl;
         cout << Color::NARANJA << "==========================================================" << Color::RESET << endl;
 
         cout << endl << Color::AZUL_FONDO<< " DESCRIPTION: " << Color::RESET << endl;
@@ -221,8 +221,24 @@ int main(int argc,char *argv[]) {
         cout << endl << Color::AZUL_FONDO << " TECHNICAL DETAILS: " << Color::RESET << endl;
         cout << " - Cipher Block Size: " << Color::NARANJA << "128 bits (16 bytes)" << Color::RESET << endl;
         cout << " - Cipher Rounds:     " << Color::NARANJA << "10 rounds" << Color::RESET << endl;
-        cout << " - Support:           " << Color::NARANJA << "Cross-platform (Linux / Windows)" << Color::RESET << endl;
+        cout << " - Support:           " << Color::NARANJA << "Cross-platform (Linux / Windows)" << Color::RESET << endl << endl;
 
+        cout << endl << Color::NARANJA << "==========================================================" << Color::RESET << endl;
+        cout << Color::ROJO    << "                 <<<OPTIONS FOR CHACHA20>>>               " << Color::RESET;
+        cout << endl << Color::NARANJA << "==========================================================" << Color::RESET << endl;
+       
+        cout << endl << Color::VERDE << " 1. ENCRYPT:" << Color::RESET << endl;
+        cout << "    Command: " << argv[0] << " <input.txt> <output.cc20> -cc20" << endl;
+        cout << "    Note: A random key will be generated in 'key.cc20' automatically." << endl;
+
+        cout << endl << Color::VERDE << " 2. DECRYPT:" << Color::RESET << endl;
+        cout << "    Command: " << argv[0] << " <input.cc20> <key.cc20> <output.txt> -cc20" << endl;
+        cout << "    Note: Requires the specific key file generated during encryption." << endl;
+        
+        cout << endl << Color::AZUL_FONDO << " TECHNICAL DETAILS: " << Color::RESET << endl;
+        cout << " - Cipher Block Size: " << Color::NARANJA << "512 bits (64 bytes)" << Color::RESET << endl;
+        cout << " - Cipher Rounds:     " << Color::NARANJA << "10 rounds" << Color::RESET << endl;
+        cout << " - Support:           " << Color::NARANJA << "Cross-platform (Linux / Windows)" << Color::RESET << endl << endl;
         cout << endl << Color::NARANJA << "==========================================================" << Color::RESET << endl;
         cout << " Developed in Argentina - 2026 for: https://github.com/cristalmirror" << endl;
         goto fin_prog;

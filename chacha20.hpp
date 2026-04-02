@@ -89,7 +89,6 @@ inline void cipherChacha20::setupInitialState(const std::vector<unsigned char> &
         state[13 + i] = nonce[i*4] | (nonce[i*4+1] << 8) | (nonce[i*4+2] << 16) | (nonce[i*4+3] << 24);
     }
 
-
 }
 
 inline std::vector<unsigned char> cipherChacha20::keyGeneratorCC20(){
@@ -123,20 +122,3 @@ inline std::vector<unsigned char> cipherChacha20::keyGeneratorCC20(){
 }
 
 
-/*
-    part of the code in the last class is a adapatation
-    of code in Cipher.hpp and Decipher.hpp...
-
-    class that content the chacha20 decipher algorithm
-*/
-class decipherChacha20 {
-private:
-
-public:
-    decipherChacha20(std::vector<unsigned char> &key);
-};
-
-//constructor decipher to chacha20
-inline decipherChacha20::decipherChacha20(std::vector<unsigned char> &key) {
-
-}

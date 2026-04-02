@@ -118,10 +118,10 @@ vector<unsigned char> loadKeyFromFile(const string& filename, const int opt) {
         case 1: {
             vector<unsigned char> key(16);
             if (!keyFile.read(reinterpret_cast<char*>(key.data()), 16)) {
-                throw runtime_error("Error al leer la clave desde el archivo: " + filename);
+                throw runtime_error("Error trying to read the archive: " + filename);
             }
 
-            cout <<Color::VERDE <<"Clave cargada desde el archivo (hexadecimal): ";
+            cout <<Color::VERDE <<"[AES-128]: loaded key (hex):";
             for (unsigned char byte : key) {
                 cout << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
             }
@@ -132,12 +132,14 @@ vector<unsigned char> loadKeyFromFile(const string& filename, const int opt) {
         case 2: { //CHACHA20 MODE
             vector<unsigned char> key(32);
             if (!keyFile.read(reinterpret_cast<char*>(key.data()), 32)) {
-                throw runtime_error("Error: el archvio" + filename + " no contiene una clave de 32 baytes.");         
+                throw runtime_error("Error: the file" + filename + " haven't a 32 bytes key.");         
             }
-
-            cout << Color::VERDE <<"[CC20]: clave cargada (hex): ";
+            int i = 0;
+            cout << Color::VERDE <<"[CC20]: loaded key (hex): " <<endl;
             for (unsigned char byte : key) {
                 cout << hex << setw(2) << setfill('0') << static_cast<int>(byte) << " ";
+                if (i == 16) cout << endl;
+                i++;
             }
             cout << dec << Color::RESET << endl;
             return key;
@@ -192,7 +194,7 @@ int main(int argc,char *argv[]) {
         case 4:  modeAlg = argv[3]; break;
         case 5:  modeAlg = argv[4]; break;
         default: 
-            cout<< Color::AMARILLO <<"se leyeron "<< blocks.size() << " bloques de "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
+            cout<< Color::AMARILLO <<"has readed "<< blocks.size() << " blocks of "<< BLOCK_SIZE <<"bytes." << Color::RESET <<endl;
         break;
     }
 
@@ -246,7 +248,7 @@ int main(int argc,char *argv[]) {
         cout << Color::NARANJA_NEGRO << "CHACHA20 MODE RUNING" << Color::RESET << endl;
         vector<vector<uint8_t>> blocksCC20 = FileHandler::readFileInBlocksCC20(filename,CHACHA_BLOCK_SIZE);
 
-        cout<< Color::AMARILLO <<"se leyeron "<< blocksCC20.size() << " bloques de "<< CHACHA_BLOCK_SIZE <<" bytes." << Color::RESET <<endl;
+        cout<< Color::AMARILLO <<"has readed "<< blocksCC20.size() << " blocks of "<< CHACHA_BLOCK_SIZE <<" bytes." << Color::RESET <<endl;
         
         cipherChacha20 cipher;
         vector<uint8_t> key;
@@ -264,7 +266,7 @@ int main(int argc,char *argv[]) {
             for (size_t i = 0; i < blocksCC20.size(); i++) {
                 cipher.encryptInCC20(blocksCC20[i]); //Aply 20 rounds XOR
                 encryptBlocks.push_back(blocksCC20[i]);
-                std::cout << Color::CIAN << "*** Bloque " << i << " cifrado ***" << Color::RESET << std::endl;
+                std::cout << Color::CIAN << "*** Blocks " << i << " cipher ***" << Color::RESET << std::endl;
             }
 
             FileHandler::writeBlocksToFile(filenameOutput, encryptBlocks);
@@ -274,9 +276,11 @@ int main(int argc,char *argv[]) {
             string fileNameOutput = argv[3];
             vector<unsigned char> key = loadKeyFromFile(keyFilename, 2);
             cipher.setupInitialState(key, 1, nonce);
-
+            int i = 0;
             for (auto &block : blocksCC20) {
                 cipher.encryptInCC20(block);
+                std::cout << Color::CIAN << "*** Blocks " << i << " decipher ***" << Color::RESET << std::endl;
+                i++;
             }
 
             FileHandler::writeBlocksToFile(fileNameOutput, blocksCC20);
@@ -294,10 +298,10 @@ int main(int argc,char *argv[]) {
         //cipher and write blocks
         for (size_t i = 0; i < blocks.size(); i++) {
             vector<unsigned char> encrypted = cipher.encryptBlock(blocks[i]);
-            printBlock(blocks[i], Color::NARANJA_NEGRO + "Bloque original " + to_string(i));
-            printBlock(encrypted, Color::AZUL_FONDO + "Bloque cifrado " + to_string(i));
+            printBlock(blocks[i], Color::NARANJA_NEGRO + "Original Block " + to_string(i));
+            printBlock(encrypted, Color::AZUL_FONDO + "Cipher Block " + to_string(i));
             encryptedBlocks.push_back(encrypted);
-            cout<< Color::CIAN << "***block "<< i <<"/"<<blocks.size()<<" encrypted ***"<< Color::RESET <<endl;
+            cout<< Color::CIAN << "*** Block "<< i <<"/"<<blocks.size()<<" encrypted ***"<< Color::RESET <<endl;
         
         }
 
@@ -313,10 +317,10 @@ int main(int argc,char *argv[]) {
         vector<vector<unsigned char>> decryptedBlocks;
         for (size_t i = 0; i < blocks.size(); i++) {
             vector<unsigned char> decrypted = decipher.decryptBlock(blocks[i]);
-            printBlock(blocks[i], Color::AZUL_FONDO + "Bloque cifrado " + std::to_string(i));
-            printBlock(decrypted,  Color::NARANJA_NEGRO + "Bloque descifrado " + std::to_string(i));
+            printBlock(blocks[i], Color::AZUL_FONDO + "Cipher Block " + std::to_string(i));
+            printBlock(decrypted,  Color::NARANJA_NEGRO + "Decipher Block " + std::to_string(i));
             decryptedBlocks.push_back(decrypted);
-            cout << Color::CIAN << "*** Bloque " << i + 1 << "/" << blocks.size() << " descifrado ***" << Color::RESET <<endl;
+            cout << Color::CIAN << "*** Block " << i + 1 << "/" << blocks.size() << " decrypted ***" << Color::RESET <<endl;
         }
         FileHandler::writeBlocksToFile(filenameOutputDecrpyt, decryptedBlocks);
 

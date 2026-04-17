@@ -1,4 +1,8 @@
-*.out
+output/*
+!output/.gitkeep
+aesexe
+aesexe.exe
 *.aes
+*.bin
 *.txt
-*.cc20
+backup-emacs/

@@ -4,6 +4,9 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [Unreleased]
+- Implementacion de AES256, AES192 y AES128 como clases hijas de una clase AES
+
 ## [0.0.2] - 2026-04-18
 
 ### Añadido

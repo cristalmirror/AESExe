@@ -1,7 +1,7 @@
 
 /*
     Con el fin de mantener la modularidad,
-    se separan los se dejan por un lado los
+    se separan en dos archivos, se dejan por un lado los
     includes con las deniciones de clases
     y en src los .cpp con los metodos
 */

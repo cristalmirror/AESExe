@@ -2,6 +2,7 @@ output/*
 !output/.gitkeep
 aesexe
 aesexe.exe
+*.cc20
 *.aes
 *.bin
 *.txt

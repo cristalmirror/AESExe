@@ -25,21 +25,26 @@ La aplicación sigue principios de diseño SOLID, separando la lógica matemáti
 Para compilar el proyecto en sistemas Linux/Unix:
 
 ```bash
-g++ src/main.cpp -Iinclude -o output/aesexe
+g++ src/main.cpp src/chacha20.cpp src/Keys.cpp -Iinclude -o output/aesexe -std=c++17 -Wall -Wextra
 ```
 
 ## Cómo Usar
-
+### Generar Clave:
+```bash
+./output/aesexe --key <aes128/aes256/chacha20>
+```
 ### Cifrar:
 
 ```bash
 ./output/aesexe enc archivo.txt clave.bin cifrado.aes
+./output/aesexe enc-cc20 archivo.txt clave.bin cifrado.cc20
 ```
 
 ### Descifrar:
 
 ```bash
 ./output/aesexe dec cifrado.aes clave.bin resultado.txt
+./output/aesexe dec-cc20 cifrado.cc20 clave.bin resultado.txt
 ```
 
 ## Flujo de Datos

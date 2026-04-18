@@ -1,7 +1,7 @@
 
 /*
     Con el fin de mantener la modularidad,
-    se separan los se dejan por un lado los
+    se separan en dos archivos, se dejan por un lado los
     includes con las deniciones de clases
     y en src los .cpp con los metodos
 */
@@ -45,7 +45,7 @@ inline void Keys::keyAES128() {
         byte = static_cast<uint8_t>(dis(gen));
     }
 
-    std::ofstream outFile("keyAES128.bin", std::ios::binary); //operacion sobre el archiv key.bin
+    std::ofstream outFile("keyAES128.bin", std::ios::binary); //operacion sobre el archivo key.bin
     if (!outFile) {
         throw std::runtime_error("No se pudo abrir el archivo de clave");
     } else {//escritura de key.bin

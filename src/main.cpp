@@ -7,6 +7,7 @@
 #include "../include/StreamProcessor.hpp"
 #include "../include/Keys.hpp"
 
+
 //comandos y descripciones
 struct Command {
     std::string usage;        // cómo se escribe
@@ -25,6 +26,7 @@ const std::vector<Command> COMMANDS = {
 };
 
 //cargador de las keys
+
 std::vector<uint8_t> loadKey(const std::string& path) {
     std::ifstream f(path, std::ios::binary);
     if (!f) return {};
@@ -33,7 +35,9 @@ std::vector<uint8_t> loadKey(const std::string& path) {
     
 }
 
+
 //manual de uso
+
 inline void help(std::string name) {
     std::cout << "=== AES/ChaCha20 - Manual de uso ===" << std::endl;
     std::cout << std::endl;
@@ -44,10 +48,12 @@ inline void help(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
+
     /*
         condicion de la generacion de
         keys para los algoritmos de cifrado
     */
+
     if (argc == 3 || argc == 2) {
         if (std::string(argv[1]) == "--help") {
             help(argv[0]);
@@ -63,6 +69,7 @@ int main(int argc, char* argv[]) {
 
         return 0;
     }
+
 
     /*
         salida por falta de argumentos

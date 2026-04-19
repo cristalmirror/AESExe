@@ -25,21 +25,35 @@ La aplicación sigue principios de diseño SOLID, separando la lógica matemáti
 Para compilar el proyecto en sistemas Linux/Unix:
 
 ```bash
-g++ src/main.cpp -Iinclude -o output/aesexe
+cd AESExe
+make 
+```
+## Compilar para debug:
+```bash
+make debug
+```
+para limpiar los .o los archivos residuales de la compilacion por debug:
+```bash
+make clean
 ```
 
 ## Cómo Usar
-
+### Generar Clave:
+```bash
+./output/aesexe --key <aes128/aes256/chacha20>
+```
 ### Cifrar:
 
 ```bash
 ./output/aesexe enc archivo.txt clave.bin cifrado.aes
+./output/aesexe enc-cc20 archivo.txt clave.bin cifrado.cc20
 ```
 
 ### Descifrar:
 
 ```bash
 ./output/aesexe dec cifrado.aes clave.bin resultado.txt
+./output/aesexe dec-cc20 cifrado.cc20 clave.bin resultado.txt
 ```
 
 ## Flujo de Datos

@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
         ChaCha20 cc20(key);
         StreamProcessor::process(cc20, inFile, outFile, true);
         std::cout << "[\e[33mAESExe\e[0m]: *256 bits modo de cifrado ChaCha20*" << std::endl;
-    }else if (mode == "enc-256") {
+    } else if (mode == "enc-256") {
         AES256 aes(key);
         StreamProcessor::process(aes, inFile, outFile, true);
         std::cout << "[A\e[32mESExe\e[0m]: *256 bits modo de cifrado AES*" << std::endl;

@@ -16,6 +16,7 @@ public:
     Keys(std::string pathKey);
 private:
     void keyAES128();
+    void keyAES192();
     void keyAES256(std::string typeAlgo);
 };
 

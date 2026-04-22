@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 #include "../include/AES128.hpp"
+#include "../include/AES192.hpp"
+#include "../include/AES256.hpp"
 #include "../include/chacha20.hpp"
 #include "../include/StreamProcessor.hpp"
 #include "../include/Keys.hpp"
@@ -16,10 +18,14 @@ struct Command {
 
 //strings del manual
 const std::vector<Command> COMMANDS = {
-    {" --key <aes128/aes256/chacha20>","Genera una clave aleatoria en key.bin"},
+    {" --key <aes128/aes192/aes256/chacha20>","Genera una clave aleatoria en key.bin"},
     {" --help",                        "Muestra este manual"},
-    {" enc <archivo> <clave> <salida>", "Cifra un archivo"},
-    {" dec <archivo> <clave> <salida>", "Descifra un archivo"},
+    {" enc <archivo> <clave> <salida>", "Cifra un archivo AES128"},
+    {" dec <archivo> <clave> <salida>", "Descifra un archivo AES128"},
+    {" enc-192 <archivo> <clave> <salida>", "Cifra un archivo AES192"},
+    {" dec-192 <archivo> <clave> <salida>", "Descifra un archivo AES192"},
+    {" enc-256 <archivo> <clave> <salida>", "Cifra un archivo AES256"},
+    {" dec-256 <archivo> <clave> <salida>", "Descifra un archivo AES256"},
     {" enc-cc20 <archivo> <clave> <salida>", "Cifra un archivo chacha20"},
     {" dec-cc20 <archivo> <clave> <salida>", "Descifra un archivo chacha20"},
     
@@ -30,7 +36,7 @@ const std::vector<Command> COMMANDS = {
 std::vector<uint8_t> loadKey(const std::string& path) {
     std::ifstream f(path, std::ios::binary);
     if (!f) return {};
-    std::cout << "[AESExe]: Clave cargada con exito..." << std::endl;
+    std::cout << "[\e[32mAESExe\e[0m]: Clave cargada con exito..." << std::endl;
     return std::vector<uint8_t>((std::istreambuf_iterator<char>(f)), {});
     
 }
@@ -101,16 +107,34 @@ int main(int argc, char* argv[]) {
     if (mode == "enc") {
         AES128 aes(key);
         StreamProcessor::process(aes, inFile, outFile, true);
-        std::cout << "[AESExe]: *128 bits modo de cifrado AES*" << std::endl;
+        std::cout << "[A\e[32mESExe\e[0m]: *128 bits modo de cifrado AES*" << std::endl;
     } else if (mode == "dec") {
         AES128 aes(key);
         StreamProcessor::process(aes, inFile, outFile, false);
-        std::cout << "[AESExe]: *128 bits modo de descifrado AES*" << std::endl;
+        std::cout << "[\e[31mAESExe\e[0m]: *128 bits modo de descifrado AES*" << std::endl;
+
+    } else if (mode == "enc-192") {
+        AES192 aes(key);
+        StreamProcessor::process(aes, inFile, outFile, true);
+        std::cout << "[\e[32mAESExe\e[0m]: *192 bits modo de cifrado AES*" << std::endl;
+    } else if (mode == "dec-192") {
+        AES192 aes(key);
+        StreamProcessor::process(aes, inFile, outFile, false);
+        std::cout << "[\e[31mAESExe\e[0m]: *192 bits modo de descifrado AES*" << std::endl;
 
     } else if(mode == "enc-cc20" || mode == "dec-cc20") {
         ChaCha20 cc20(key);
         StreamProcessor::process(cc20, inFile, outFile, true);
-        std::cout << "[AESExe]: *256 bits modo de cifrado ChaCha20*" << std::endl;
+        std::cout << "[\e[33mAESExe\e[0m]: *256 bits modo de cifrado ChaCha20*" << std::endl;
+    }else if (mode == "enc-256") {
+        AES256 aes(key);
+        StreamProcessor::process(aes, inFile, outFile, true);
+        std::cout << "[A\e[32mESExe\e[0m]: *256 bits modo de cifrado AES*" << std::endl;
+    } else if (mode == "dec-256") {
+        AES256 aes(key);
+        StreamProcessor::process(aes, inFile, outFile, false);
+        std::cout << "[\e[31mAESExe\e[0m]: *256 bits modo de descifrado AES*" << std::endl;
+
     } else {
         std::cerr << "Uso: " << argv[0] << "con argumentos invalidos" << std::endl
            << "Use --help para obtener ayuda y ver las opciones disponibles." << std::endl;

@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra
-INCLUDES = -Iiclude
+INCLUDES = -Iinclude
 SRCS = src/main.cpp src/chacha20.cpp src/Keys.cpp
 TARGET = output/aesexe
 

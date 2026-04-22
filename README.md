@@ -1,6 +1,6 @@
 # AESExe – Cifrado AES en C++
 
-Este proyecto implementa una herramienta de cifrado de archivos utilizando el algoritmo AES-128, escrita en C++ puro con una arquitectura escalable y desacoplada.
+Este proyecto implementa una herramienta de cifrado de archivos utilizando los algoritmos AES-128, AES-192, AES-256 y ChaCha20 escrita en C++ puro con una arquitectura escalable y desacoplada.
 
 ## Arquitectura
 
@@ -9,7 +9,7 @@ La aplicación sigue principios de diseño SOLID, separando la lógica matemáti
 ### Componentes Principales
 
 - **ICipher**: Interfaz pura que define el contrato para cualquier algoritmo de cifrado. Permite intercambiar AES por otros algoritmos (como ChaCha20) sin modificar el sistema.
-- **AES128**: Implementación concreta del algoritmo AES de 128 bits. Contiene la lógica de expansión de claves, S-Boxes y transformaciones de bloques. Es "pura lógica", sin dependencias de entrada/salida.
+- **AES**: Implementación concreta del algoritmo AES de 128, 192, 256 bits. Contiene la lógica de expansión de claves, S-Boxes y transformaciones de bloques. Es "pura lógica", sin dependencias de entrada/salida.
 - **StreamProcessor**: Motor de procesamiento que maneja el flujo de datos. Lee archivos bloque a bloque, permitiendo procesar archivos de cualquier tamaño con un consumo de memoria mínimo y constante.
 - **Main**: Orquestador que gestiona los argumentos de la línea de comandos y conecta los componentes.
 
@@ -47,6 +47,8 @@ make clean
 ```bash
 ./output/aesexe enc archivo.txt clave.bin cifrado.aes
 ./output/aesexe enc-cc20 archivo.txt clave.bin cifrado.cc20
+./output/aesexe enc-192 archivo.txt clave.bin cifrado.aes
+./output/aesexe enc-256 archivo.txt clave.bin cifrado.aes
 ```
 
 ### Descifrar:
@@ -54,6 +56,8 @@ make clean
 ```bash
 ./output/aesexe dec cifrado.aes clave.bin resultado.txt
 ./output/aesexe dec-cc20 cifrado.cc20 clave.bin resultado.txt
+./output/aesexe dec-192 cifrado.cc20 clave.bin resultado.txt
+./output/aesexe dec-256 cifrado.cc20 clave.bin resultado.txt
 ```
 
 ## Flujo de Datos

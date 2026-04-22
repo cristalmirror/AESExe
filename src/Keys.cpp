@@ -19,6 +19,8 @@
 Keys::Keys(std::string pathKey) {
     if(pathKey == "aes128") {
         keyAES128();
+    } else if(pathKey == "aes192") {
+        keyAES192();
     } else if(pathKey == "aes256") {
         keyAES256(pathKey);
     } else if(pathKey == "chacha20") {
@@ -28,7 +30,7 @@ Keys::Keys(std::string pathKey) {
             comparten la misma longitud de bits
         */
         keyAES256(pathKey);
-    } else throw std::invalid_argument("Algoritmo de clave no soportado: " + pathKey);
+    } else throw std::invalid_argument("Algoritmo de clave no soportado: \e[31m" + pathKey + "\e[0m");
 }
 
 /*
@@ -51,7 +53,32 @@ inline void Keys::keyAES128() {
     } else {//escritura de key.bin
         outFile.write(reinterpret_cast<const char*>(key.data()), key.size());
         outFile.close();
-        std::cout << "[AES128]: Clave generada con exito..." << std::endl;
+        std::cout << "[\e[32mAES128\e[0m]: Clave generada con exito..." << std::endl;
+    }
+
+}
+
+/*
+    generador de keys para AES192
+    (24 bytes)
+*/
+inline void Keys::keyAES192() {
+    std::vector<uint8_t> key(24);
+    std::random_device rd;
+    std::mt19937 gen(rd());//incrementa la entropia
+    std::uniform_int_distribution<> dis(0, 255);
+
+    for (auto &byte : key) {//generacion de los bytes de la key
+        byte = static_cast<uint8_t>(dis(gen));
+    }
+
+    std::ofstream outFile("keyAES192.bin", std::ios::binary); //operacion sobre el archivo key.bin
+    if (!outFile) {
+        throw std::runtime_error("No se pudo abrir el archivo de clave");
+    } else {//escritura de key.bin
+        outFile.write(reinterpret_cast<const char*>(key.data()), key.size());
+        outFile.close();
+        std::cout << "[\e[32mAES192\e[0m]: Clave generada con exito..." << std::endl;
     }
 
 }
@@ -76,8 +103,8 @@ inline void Keys::keyAES256(std::string typeAlgo) {
         outFile.write(reinterpret_cast<const char*>(key.data()), key.size());
         outFile.close();
         
-        if(typeAlgo=="aes256") std::cout << "[AES256]: Clave generada con exito..." << std::endl;
-        else  std::cout << "[CHCH20]: Clave generada con exito..." << std::endl;
+        if(typeAlgo=="aes256") std::cout << "[\e[32mAES256\e[0m]: Clave generada con exito..." << std::endl;
+        else  std::cout << "[\e[32mCHCH20\e[0m]: Clave generada con exito..." << std::endl;
     }
 }
 

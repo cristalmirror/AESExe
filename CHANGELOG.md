@@ -5,7 +5,9 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
-
+## [0.2.0] 2026-05-21
+### Añadido
+- Se implemento las archivos `Server.hpp` y `Server.cpp` para crear opciones de sifrado en red local.
 ## [0.1.0] 2026-04-21
 ### Añadido
 - Implementacion de AES256, AES192 y AES128 como clases hijas de una clase AES

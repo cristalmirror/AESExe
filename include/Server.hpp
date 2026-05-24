@@ -12,15 +12,16 @@
 
 class Server {
 protected:
-    int sockfd, web_sock;
+    int sockfd, web_sock, count_thread = 0;
     struct sockaddr_in address, local_address;
     int addrlen = sizeof(address);
     uint16_t port;
     SSL_CTX *ctx;
     socklen_t address_leng;
+    int connectManager(SSL *ssl);
 public:
   
     Server(std::string ip, std::string s_port);
     void initServer();
-    
+    void openConnect();
 };

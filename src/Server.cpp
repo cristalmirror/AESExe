@@ -20,7 +20,7 @@ int Server::connectManager(SSL *ssl) {
 
     if (SSL_accept(ssl) <= 0) {
         std::cerr << "Handsheke error" << std::endl;
-        ERR_print_errors(stderr);
+        ERR_print_errors_fp(stderr);
     } else {
         //initial size buffer define
         size_t tam = 1024;
@@ -39,7 +39,7 @@ int Server::connectManager(SSL *ssl) {
           exponetly form the size in the heap memory
           with realloc()
          */
-        while ((read_bytes = SSL_read(ssl, bufer + total_read, tam - total_read - 1)) > 0) {
+        while ((read_bytes = SSL_read(ssl, buffer + total_read, tam - total_read - 1)) > 0) {
             //incrememt in read bytes size
             total_read += read_bytes;
 
@@ -69,7 +69,7 @@ int Server::connectManager(SSL *ssl) {
                  "Connection: close\r\n"
                  "\r\n"
                  "%s",
-                 strlen(build), body);
+                 strlen(build), build);
         SSL_write(ssl, respose, strlen(respose));
         free(buffer);
     }

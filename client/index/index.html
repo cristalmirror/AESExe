@@ -6,17 +6,28 @@
   </head>
   <!--body context-->
   <body>
-    <h1>⚖️Juzgado Federal N°1⚖️</h1>
+    <h1>AESExe</h1>
     <h2>AESExe</h2>
-    <h3>⚖️Soporte de Nuevas Tecnologias⚖️</h3>
-    
+    <h3>AESExe</h3>
+    <div>
+      <p id="text-information">
+        Este este sistema permite a sus usuarios tener un sistemas de gestion de contraseñas seguras.
+        Permite utilizar contraseñas de guardandolas de forma cifrada que hacen solo el usuario con un archivo key.
+        este archivo key se descargara automaticamente permitiendo desifrar luego las contraseñas.
+        de esa manera pueden verlas.
+      </P>
+    </div>
     <div class="container">
       <div class="left"><!--left-->
+        <p>CUIL:</p>
+        <input type="text" id="cuil" placeholder="CUIL">
+        <p>Contraseñas: </p>
         <div class="textarea-row">
           <textarea placeholder="Escribe aquí..."></textarea>
           <button>Enviar</button>
+          <button onclick="document.getElementById('fileInput').click()">Buscar archivo</button>
+          <input type="file" id="fileInput" style="display:none">
         </div>
-        <input type="file">
       </div>
       <div class="right"><!--right-->
         <input type="radio" name="cipher" value="AES256"> AES256
@@ -28,6 +39,10 @@
   </body>
   <!--footer-->
   <footer>
+    <p id="text-information">
+      Desarrollado por el Departamento de Nuevas Tecnologias del Juzgado N°1 del Poder Judicial de La Nacion
+    </p>
+    <p id="text-information">AESExe v0.2.1</p>
   </footer>
   <script src="../src/main.js"></script>
 </html>

@@ -6,11 +6,14 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 - Implementacion de las operaciones de la vercion 0.2.1 del servidor.
-## [0.2.1] 2026-05-21
+## [0.2.2] 2026-05-25
+### Añadido
+-Se creo la estructura basica del cliente.
+## [0.2.1] 2026-05-24
 ### Añadido
 - Se añadieron las operaciones que fueron necesarias dentro del servidor
 
-## [0.2.0] 2026-05-21
+## [0.2.0] 2026-05-22
 ### Añadido
 - Se implemento las archivos `Server.hpp` y `Server.cpp` para crear opciones de sifrado en red local.
 

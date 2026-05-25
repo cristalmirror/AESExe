@@ -2,6 +2,25 @@
 html {
     background-color: #02194F;
 }
+p {
+    color: #757678;
+    font-size: 18px;
+}
+#text-information {
+    text-align: center;
+}
+#cuil {
+    font-size: 18px;
+    background-color: #757678;
+}
+
+#cuil::placeholder {
+      color: #ffff;
+}
+  
+textarea::placeholder {
+      color: #ffff;
+}
 
 h1, h2, h3 {
     text-align: center;
@@ -26,7 +45,7 @@ h1, h2, h3 {
     resize: vertical;
     padding: 8px;
     box-sizing: border-box;
-    background-color: #FFF;
+    background-color: #757678;
     border-radius: 5px;
     font-size: 18px;
 }
@@ -38,11 +57,13 @@ h1, h2, h3 {
     gap: 12px;
     align-items: flex-start;
     color: #757678;
+    padding-top: 130px;
 }
 
 .right select {
     width: 100%;
     padding: 8px;
+    background-color:  #757678;
 }
 
 .right button {

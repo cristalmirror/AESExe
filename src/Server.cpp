@@ -1,3 +1,5 @@
+#include "../include/StreamProcessor.hpp"
+#include "../include/AES.hpp"
 #include "../include/Server.hpp"
 #include <arpa/inet.h>
 #include <cstddef>
@@ -13,13 +15,27 @@
 #include <ostream>
 #include <sys/socket.h>
 #include <thread>
+/*this method have the conditions to set de cipher algorithm*/
+void Server::operationsMannager(char *buff_ref) {
+    std::string str_buff(buff_ref);
+    /*Conditions*/
+    if (str_buff == "aes256") {
+        cipher::process();
+    } else if (str_buff == "aes192") {
+        
+    } else if (str_buff == "aes128") {
+        
+    } else if (str_buff == "cc20") {
+        
+    }
+}
 
 int Server::connectManager(SSL *ssl) {
   
     std::cout << "[AESEXE] {SERVER MODE}: new thread for a client has created" << std::endl;
 
     if (SSL_accept(ssl) <= 0) {
-        std::cerr << "Handsheke error" << std::endl;
+        std::cerr << "Handshake error" << std::endl;
         ERR_print_errors_fp(stderr);
     } else {
         //initial size buffer define
@@ -57,6 +73,7 @@ int Server::connectManager(SSL *ssl) {
             buffer[total_read] = '\0';
             // exit for while
             if (strstr(buffer,"\r\n\r\n")) break;
+            operationsMannager(buffer);
         }
 
         // http respose
@@ -85,6 +102,23 @@ Server::Server(std::string ip, std::string s_port) {
     address.sin_family = AF_INET;
     address.sin_port = htons(port);
     address.sin_addr.s_addr = inet_addr(ip.c_str());
+
+    //make the sertificates
+    if (SSL_CTX_use_certificate_file(ctx, "server.crt", SSL_FILETYPE_PEM) <= 0) {
+        ERR_print_errors_fp(stderr);
+        exit(EXIT_FAILURE);
+    }
+    
+    if (SSL_CTX_use_PrivateKey_file(ctx, "server.key", SSL_FILETYPE_PEM) <= 0) {
+        ERR_print_errors_fp(stderr);
+        exit(EXIT_FAILURE);
+    }
+    
+    if (!SSL_CTX_check_private_key(ctx)) {
+        std::cerr << "Error: clave privada no coincide con el certificado" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
     
 }
 

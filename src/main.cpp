@@ -8,7 +8,7 @@
 #include "../include/chacha20.hpp"
 #include "../include/StreamProcessor.hpp"
 #include "../include/Keys.hpp"
-
+#include "../include/Server.hpp"
 
 //comandos y descripciones
 struct Command {
@@ -135,6 +135,10 @@ int main(int argc, char* argv[]) {
         StreamProcessor::process(aes, inFile, outFile, false);
         std::cout << "[\e[31mAESExe\e[0m]: *256 bits modo de descifrado AES*" << std::endl;
 
+    } else if (mode == "ser") {
+      Server server(argv[2], argv[3]);
+      server.initServer();
+      server.openConnect();
     } else {
         std::cerr << "Uso: " << argv[0] << "con argumentos invalidos" << std::endl
            << "Use --help para obtener ayuda y ver las opciones disponibles." << std::endl;

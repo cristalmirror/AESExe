@@ -6,6 +6,10 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 - Implementacion de las operaciones de la vercion 0.2.1 del servidor.
+
+## [0.2.4] 2026-06-5                                                                                                                                                    
+### Añadido
+- Se añadio la logica del cliente en main.js
 ## [0.2.3] 2026-05-31
 ### Añadido
 -Se creo el metodo `operationsMannager()` para gestionar los algoritmos.

@@ -10,12 +10,12 @@
     <h2>AESExe</h2>
     <h3>AESExe</h3>
     <div>
-      <p id="text-information">
+      <p class="text-information">
         Este este sistema permite a sus usuarios tener un sistemas de gestion de contraseñas seguras.
         Permite utilizar contraseñas de guardandolas de forma cifrada que hacen solo el usuario con un archivo key.
         este archivo key se descargara automaticamente permitiendo desifrar luego las contraseñas.
         de esa manera pueden verlas.
-      </P>
+      </p>
     </div>
     <div class="container">
       <div class="left"><!--left-->
@@ -23,8 +23,8 @@
         <input type="text" id="cuil" placeholder="CUIL">
         <p>Contraseñas: </p>
         <div class="textarea-row">
-          <textarea placeholder="Escribe aquí..."></textarea>
-          <button>Enviar</button>
+          <textarea id="textarea-data" placeholder="Escribe aquí..."></textarea>
+          <button id="btn-enviar">Enviar</button>
           <button onclick="document.getElementById('fileInput').click()">Buscar archivo</button>
           <input type="file" id="fileInput" style="display:none">
         </div>
@@ -42,7 +42,7 @@
     <p id="text-information">
       Desarrollado por el Departamento de Nuevas Tecnologias del Juzgado N°1 del Poder Judicial de La Nacion
     </p>
-    <p id="text-information">AESExe v0.2.1</p>
+    <p class="text-information">AESExe v0.2.1</p>
   </footer>
   <script src="../src/main.js"></script>
 </html>

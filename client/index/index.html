@@ -25,15 +25,13 @@
         <div class="textarea-row">
           <textarea id="textarea-data" placeholder="Escribe aquí..."></textarea>
           <button id="btn-enviar">Enviar</button>
-          <button onclick="document.getElementById('fileInput').click()">Buscar archivo</button>
+          <button id="btn-buscar" style="display:none" onclick="document.getElementById('fileInput').click()">Buscar archivo</button>
           <input type="file" id="fileInput" style="display:none">
         </div>
       </div>
       <div class="right"><!--right-->
-        <input type="radio" name="cipher" value="AES256"> AES256
-        <input type="radio" name="cipher" value="AES192"> AES192
-        <input type="radio" name="cipher" value="AES128"> AES128
-        <input type="radio" name="cipher" value="Chacha20"> ChaCha20
+        <input type="radio" name="decipher" value="Decipher"> Buscar Contraseñas
+        <input type="radio" name="cipher" value="Cipher"> Guardar Contraseñas
       </div>
     </div>
   </body>

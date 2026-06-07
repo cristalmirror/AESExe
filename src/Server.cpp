@@ -1,5 +1,9 @@
 #include "../include/StreamProcessor.hpp"
 #include "../include/AES.hpp"
+#include "../include/AES256.hpp"
+#include "../include/AES192.hpp"
+#include "../include/AES128.hpp"
+#include "../include/chacha20.hpp"
 #include "../include/Server.hpp"
 #include <arpa/inet.h>
 #include <cstddef>
@@ -9,25 +13,179 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <netinet/in.h>
+#include <nlohmann/json.hpp>
+#include <openssl/bio.h>
 #include <openssl/err.h>
+#include <openssl/evp.h>
 #include <openssl/ssl.h>
 #include <ostream>
+#include <string>
 #include <sys/socket.h>
 #include <thread>
-/*this method have the conditions to set de cipher algorithm*/
-void Server::operationsMannager(char *buff_ref) {
-    std::string str_buff(buff_ref);
-    /*Conditions*/
-    if (str_buff == "aes256") {
-        cipher::process();
-    } else if (str_buff == "aes192") {
-        
-    } else if (str_buff == "aes128") {
-        
-    } else if (str_buff == "cc20") {
-        
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <vector>
+/*
+    json type simplification:
+    json is necesary to manager
+    the json messages of the clients
+
+*/
+using json = nlohmann::json;
+namespace fs = std::filesystem;
+static const std::string STORE_DIR "store";
+static const std::string CORS =
+    "Access-Control-Allow-Origin: *\r\n"
+    "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
+    "Access-Control-Allow-Headers: Content-Type\r\n";
+
+std::string Server::parseHttpPath(const std::string &req) {
+    size_t s = req.find(' ');
+
+    if (s == std::string::npos) return "";
+    size_t e = req.find(' ', s + 1);
+
+    if (e == std::string::npos) return "";
+    return req.substr(s + 1, e - s -1);
+}
+
+std::string Server::pasherHttpBody(const std::string &req) {
+    size_t sep = req.find("\r\n\r\n");
+
+    if (sep == std::string::npos) return "";
+    return req.substr(sep + 4);
+}
+
+/*OpenSSL BIO to base64*/
+std::string Server::base64Encode(const std::vector<uint8_t> &data) {
+    BIO *b64 = BIO_new(BIO_f_base64());
+    BIO *mem = BIO_new(BIO_s_mem());
+    BIO_push(b64, mem);
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+    BIO_write(b64, data.data(), data.size());
+    BIO_flush(b64);
+    char *ptr;
+    long len = BIO_get_mem_data(mem, &ptr);
+    std::string result(ptr, len);
+    BIO_free_all(BIO);
+    return result;
+}
+
+std::string Server::base64Decode(const std::string data_encode) {
+    BIO_ *b64 = BIO_new(BIO_f_base64());
+    BIO *men = BIO_new_mem_buf(encode.data(), encode.size());
+    BIO_push(b64, mem);
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+    std::vector<uint8_t> result(encode.size());
+    int len = BIO_read(b64, result.data(), result.size());
+    BIO_free_all(len);
+    if (len > 0) {
+        result.resize(len);
+    } else {
+        result.clear();
     }
+    return result;
+}
+
+void Server::sendResponse(SSL *ssl, int status, const std::string &ct, const std::string &body) {
+    std::string sl = (status == 200)   ? "200 ok"
+        : (status == 400) ? "400 Bad Request"
+        : (status == 404) ? "404 Not Found"
+        : "500 Internal Server Error";
+
+    std::string resp = "HTPP/1.1 " + sl + "\r\n" + CORS +
+                       "Content-Type: " + ct + "\r\n" +
+                       "Content-Length: " + std::to_string(body.size()) +
+                       "\r\n" + "Connection: close\r\n\r\n" + body;
+    SSL_write(ssl, resp.c_str(), resp.size());
+}
+
+void Server::sendBinaryRespose(SSL *ssl, const std::vector<uint8_t> &data) {
+    std::string headers = "HTTP/1.1 200 OK" + CORS +
+                          "Content-Type: application/octet-stream\r\n" +
+                          "Content-Length: " + std::to_string(body.size()) +
+                          "\r\n" + "Connection: close\r\n\r\n" + body;
+    SSL_write(ssl, resp.c_str(), resp.size());
+    SSL_write(ssl, reinterpret_cast<const char*>(data.data()), data.size());
+}
+
+
+static bool validCuil(const std::string &cuil) {
+    return !cuil.empty() && cuil.size() <= 20 && cuil.find_last_not_of("0123456789-") == std::string::npos;
+}
+
+/* ---Handle Operations--- */
+void Server::handleOperations(SSL *ssl) {
+    std::string resp = "HTTP 1.1 204 No Content \r\n" + CORS +
+      "Content-Length: 0\r\nConnection: close\r\n\r\n";
+    SSL_write(ssl, resp.c_str(), resp.size());
+}
+
+/*operation to handle encrypt*/
+void Server::handleEncrypt(SSL *ssl, const std::string &body) {
+    json req;
+    /*
+      the body resept in this code will be
+      refactor to json on other data type
+      that C++ understand
+    */
+    try {
+        req =json::parse(body);
+    } catch (...) {/*if isn't json code send error*/
+        sendResponse(ssl, 400, "text/plainm", "Invalid JSON");
+        return;
+    }
+
+    std::string cuil = req.value("cuil","");
+    std::string data = req.value("data", "");
+    std::string algo = red.value("algo","");
+        
+    if (!valid(cuil) || data.empty()) {
+        sendResponse(ssl, 400, "text/planin", "Missing CUIL or data");
+        return;
+    }
+
+    /*generations key*/
+    Keys key(algo);
+
+    if (algo == "aes256") {
+        AES aes(key);
+        std::istringstream in(data);
+        std::ostringstream out;
+        StreamProcessor::process(aes, in, out, true);
+    } else if (algo == "aes192") {
+        AES aes(key);
+        std::istringstream in(data);
+        std::ostringstream out;
+        StreamProcessor::process(aes, in, out, true);
+    } else if (algo == "aes128") {
+        AES aes(key);
+        std::istringstream in(data);
+        std::ostringstream out;
+        StreamProcessor::process(aes, in, out, true);
+    } else if (algo == "chacha20") {
+        ChaCha20 cc20(key);
+        std::istringstream in(data);
+        std::ostringstream out;
+        StreamProcessor::process(cc20, in, out, true);
+    }
+
+    // Save in store/cuil.aes
+    fs::create_directories(STORE_DIR);
+    std::ofstream file(STORE_DIR + "/" + cuil + ".aes", std::ios::binary);
+    if (!file) {
+        sendResponse(ssl, 500, "text/plain", "Storage error");
+        return;
+    }    
+    std::string ct = out.str();
+    file.write();
+    file.close();
+    std::cout << "[AESEXE] /encrypt OK - CUIL" << cuil << std::end;
+    //Devolution of the key (download in client)
+    sendBinaryRespose(ssl,key);
 }
 
 int Server::connectManager(SSL *ssl) {
@@ -37,6 +195,8 @@ int Server::connectManager(SSL *ssl) {
     if (SSL_accept(ssl) <= 0) {
         std::cerr << "Handshake error" << std::endl;
         ERR_print_errors_fp(stderr);
+        SSL_free(ssl);
+        return 1;
     } else {
         //initial size buffer define
         size_t tam = 1024;
@@ -73,22 +233,25 @@ int Server::connectManager(SSL *ssl) {
             buffer[total_read] = '\0';
             // exit for while
             if (strstr(buffer,"\r\n\r\n")) break;
-            operationsMannager(buffer);
         }
 
-        // http respose
-        const char *build = "[AESEXE] {SERVER MODE}: ***message received***";
-        char respose[512];
-        snprintf(respose, sizeof(respose),
-                 "HTTP/1.1 200 OK\r\n"
-                 "Content-Type: text/plain\r\n"
-                 "Content-Length: %zu\r\n"
-                 "Connection: close\r\n"
-                 "\r\n"
-                 "%s",
-                 strlen(build), build);
-        SSL_write(ssl, respose, strlen(respose));
+        
+        std::string request(buffer,total_read);
         free(buffer);
+
+        std::string method = request.substr(0, request.find(' '));
+        std::string path = parseHttpPath(request);
+        std::string body = parseHttpBody(request);
+
+        if (method == "OPTIONS") {
+            handleOpertions(ssl);
+        } else if (method == "POST" && path == "/encrypt") {
+            handleEncrypt(ssl);
+        } else if (method == "POST" && path == "/decrypt") {
+            handleDecrypt(ssl,body);
+        } else {
+            sendResponse(ssl, 400,"text/plain", "Unknow endpoint");
+        }
     }
     SSL_shutdown(ssl);
     SSL_free(ssl);

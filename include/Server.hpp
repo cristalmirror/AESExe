@@ -34,7 +34,7 @@ protected:
     int connectManager(SSL *ssl);
     void handleEncrypt(SSL *ssl, const std::string &body);
     void handleDecrypt(SSL *ssl, const std::string &body);
-    void handleOpertions(SSL *ssl);
+    void handleOperations(SSL *ssl);
 
     std::string parseHttpPath(const std::string &rqst);
     std::string parseHttpBody(const std::string &rqst);

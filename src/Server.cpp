@@ -36,7 +36,7 @@
 */
 using json = nlohmann::json;
 namespace fs = std::filesystem;
-static const std::string STORE_DIR "store";
+static const std::string STORE_DIR = "store";
 static const std::string CORS =
     "Access-Control-Allow-Origin: *\r\n"
     "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
@@ -52,7 +52,7 @@ std::string Server::parseHttpPath(const std::string &req) {
     return req.substr(s + 1, e - s -1);
 }
 
-std::string Server::pasherHttpBody(const std::string &req) {
+std::string Server::parseHttpBody(const std::string &req) {
     size_t sep = req.find("\r\n\r\n");
 
     if (sep == std::string::npos) return "";
@@ -70,18 +70,18 @@ std::string Server::base64Encode(const std::vector<uint8_t> &data) {
     char *ptr;
     long len = BIO_get_mem_data(mem, &ptr);
     std::string result(ptr, len);
-    BIO_free_all(BIO);
+    BIO_free_all(b64);
     return result;
 }
 
-std::string Server::base64Decode(const std::string data_encode) {
-    BIO_ *b64 = BIO_new(BIO_f_base64());
-    BIO *men = BIO_new_mem_buf(encode.data(), encode.size());
+std::vector<uint8_t> Server::base64Decode(const std::string &data_encode) {
+    BIO *b64 = BIO_new(BIO_f_base64());
+    BIO *mem = BIO_new_mem_buf(data_encode.data(), data_encode.size());
     BIO_push(b64, mem);
     BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-    std::vector<uint8_t> result(encode.size());
+    std::vector<uint8_t> result(data_encode.size());
     int len = BIO_read(b64, result.data(), result.size());
-    BIO_free_all(len);
+    BIO_free_all(b64);
     if (len > 0) {
         result.resize(len);
     } else {
@@ -96,7 +96,7 @@ void Server::sendResponse(SSL *ssl, int status, const std::string &ct, const std
         : (status == 404) ? "404 Not Found"
         : "500 Internal Server Error";
 
-    std::string resp = "HTPP/1.1 " + sl + "\r\n" + CORS +
+    std::string resp = "HTTP/1.1 " + sl + "\r\n" + CORS +
                        "Content-Type: " + ct + "\r\n" +
                        "Content-Length: " + std::to_string(body.size()) +
                        "\r\n" + "Connection: close\r\n\r\n" + body;
@@ -104,11 +104,11 @@ void Server::sendResponse(SSL *ssl, int status, const std::string &ct, const std
 }
 
 void Server::sendBinaryRespose(SSL *ssl, const std::vector<uint8_t> &data) {
-    std::string headers = "HTTP/1.1 200 OK" + CORS +
+    std::string headers = "HTTP/1.1 200 OK\r\n" + CORS +
                           "Content-Type: application/octet-stream\r\n" +
-                          "Content-Length: " + std::to_string(body.size()) +
-                          "\r\n" + "Connection: close\r\n\r\n" + body;
-    SSL_write(ssl, resp.c_str(), resp.size());
+                          "Content-Length: " + std::to_string(data.size()) +
+                          "\r\n" + "Connection: close\r\n\r\n";
+    SSL_write(ssl, headers.c_str(), headers.size());
     SSL_write(ssl, reinterpret_cast<const char*>(data.data()), data.size());
 }
 
@@ -141,35 +141,30 @@ void Server::handleEncrypt(SSL *ssl, const std::string &body) {
 
     std::string cuil = req.value("cuil","");
     std::string data = req.value("data", "");
-    std::string algo = red.value("algo","");
+    std::string algo = req.value("algo","");
         
-    if (!valid(cuil) || data.empty()) {
+    if (!validCuil(cuil) || data.empty()) {
         sendResponse(ssl, 400, "text/planin", "Missing CUIL or data");
         return;
     }
 
     /*generations key*/
-    Keys key(algo);
+    std::vector<uint8_t> raw_key = Keys::generate(algo);
+
+    std::istringstream in(data);
+    std::ostringstream out;
 
     if (algo == "aes256") {
-        AES aes(key);
-        std::istringstream in(data);
-        std::ostringstream out;
+        AES256 aes(raw_key);
         StreamProcessor::process(aes, in, out, true);
     } else if (algo == "aes192") {
-        AES aes(key);
-        std::istringstream in(data);
-        std::ostringstream out;
+        AES192 aes(raw_key);
         StreamProcessor::process(aes, in, out, true);
     } else if (algo == "aes128") {
-        AES aes(key);
-        std::istringstream in(data);
-        std::ostringstream out;
+        AES128 aes(raw_key);
         StreamProcessor::process(aes, in, out, true);
     } else if (algo == "chacha20") {
-        ChaCha20 cc20(key);
-        std::istringstream in(data);
-        std::ostringstream out;
+        ChaCha20 cc20(raw_key);
         StreamProcessor::process(cc20, in, out, true);
     }
 
@@ -181,11 +176,11 @@ void Server::handleEncrypt(SSL *ssl, const std::string &body) {
         return;
     }    
     std::string ct = out.str();
-    file.write();
+    file.write(ct.data(), ct.size());
     file.close();
-    std::cout << "[AESEXE] /encrypt OK - CUIL" << cuil << std::end;
+    std::cout << "[AESEXE] /encrypt OK - CUIL" << cuil << std::endl;
     //Devolution of the key (download in client)
-    sendBinaryRespose(ssl,key);
+    sendBinaryRespose(ssl, raw_key);
 }
 
 void Server::handleDecrypt(SSL *ssl, const std::string &body) {
@@ -233,16 +228,16 @@ void Server::handleDecrypt(SSL *ssl, const std::string &body) {
 
     try {
         if (algo == "aes256") {
-            AES256 aes(key);
+            AES256 aes(raw_key);
             StreamProcessor::process(aes, in, out, false);
         } else if (algo == "aes192") {
-            AES192 aes(key);
+            AES192 aes(raw_key);
             StreamProcessor::process(aes, in, out, false);
         } else if (algo == "aes128") {
-            AES128 aes(key);
+            AES128 aes(raw_key);
             StreamProcessor::process(aes, in, out, false);
         } else if (algo == "chacha20") {
-            ChaCha20 cc20(key);
+            ChaCha20 cc20(raw_key);
             StreamProcessor::process(cc20, in, out, false);
         } else {
             sendResponse(ssl, 400, "text/plain", "Unknown algorithm");
@@ -317,9 +312,9 @@ int Server::connectManager(SSL *ssl) {
         std::string body = parseHttpBody(request);
 
         if (method == "OPTIONS") {
-            handleOpertions(ssl);
+            handleOperations(ssl);
         } else if (method == "POST" && path == "/encrypt") {
-            handleEncrypt(ssl);
+            handleEncrypt(ssl, body);
         } else if (method == "POST" && path == "/decrypt") {
             handleDecrypt(ssl,body);
         } else {

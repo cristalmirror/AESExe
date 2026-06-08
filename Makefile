@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra
 INCLUDES = -Iinclude
-SRCS = src/main.cpp src/chacha20.cpp src/Keys.cpp src/Server.cpp
+SRCS = src/main.cpp src/chacha20.cpp src/Keys.cpp src/loadKey.cpp src/Server.cpp src/StreamProcessorGCM.cpp
 TARGET = output/aesexe
 LDLIBS = -lssl -lcrypto
 

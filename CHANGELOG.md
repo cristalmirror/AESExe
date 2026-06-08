@@ -5,7 +5,26 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+
 - Implementacion de las operaciones de la vercion 0.2.1 del servidor.
+## [0.3.0] 2026-06-8
+### Añadido
+- Se crearon los archivos `StreamProcessorGCM.hpp` y `StreamProcessorGCM.cpp` con una nueva clase `StreamProcessorGCM` que implementa el modo de cifrado autenticado GCM (NIST SP 800-38D), incluyendo multiplicación en GF(2¹²⁸), GHASH, modo contador GCTR, y formato de salida `[nonce 12 B][ciphertext][tag 16 B]`.
+- Se añadió el método estático `Keys::generate(const std::string& algo)` en `Keys.hpp` y `Keys.cpp` que genera una clave aleatoria segura mediante `RAND_bytes` de OpenSSL según el algoritmo indicado (16 B para AES-128, 24 B para AES-192, 32 B para AES-256 y ChaCha20).
+- Se implementaron en `Server` los métodos `handleEncrypt`, `handleDecrypt` y `handleOpertions` para gestionar las rutas `POST /encrypt`, `POST /decrypt` y preflight CORS `OPTIONS`.
+- Se añadieron los helpers HTTP en `Server`: `parseHttpPath`, `parseHttpBody`, `base64Encode`, `base64Decode`, `sendResponse` y `sendBinaryRespose`.
+- Se agregó la función auxiliar `validCuil` para validar el CUIL recibido en las peticiones.
+- Se incorporaron headers CORS globales (`Access-Control-Allow-Origin`, `Allow-Methods`, `Allow-Headers`) a todas las respuestas del servidor.
+
+### Modificado
+- Se reemplazó el método `operationsMannager` en `Server` por un enrutador HTTP que despacha según método y ruta.
+- Se refactorizó `connectManager` en `Server.cpp`: la respuesta HTTP hardcodeada fue sustituida por el enrutador; se corrigió el manejo del error de handshake SSL agregando `SSL_free` y retorno temprano.
+- Se marcaron `AES::sbox` y `AES::invSbox` en `AES.hpp` como `inline` para evitar errores de definición múltiple al incluirse en varios translation units.
+- Se actualizó `Makefile` para incluir `src/loadKey.cpp` y `src/StreamProcessorGCM.cpp` en la compilación.
+
+### Pendiente / Comentado
+- La reconstrucción de la clave desde `raw_key` en `handleDecrypt` está comentada (`Keys key(algo, raw_key)`) a la espera de implementar ese constructor en la clase `loadKey`.
 
 ## [0.2.6] 2026-06-7
 ### Añadido

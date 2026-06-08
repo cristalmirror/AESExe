@@ -188,6 +188,79 @@ void Server::handleEncrypt(SSL *ssl, const std::string &body) {
     sendBinaryRespose(ssl,key);
 }
 
+void Server::handleDecrypt(SSL *ssl, const std::string &body) {
+    json req;
+
+    try {
+        req = json::parse(body);
+    } catch (...) {
+        sendResponse(ssl, 400, "text/plain", "Invalid JSON");
+        return;
+    }
+
+    std::string cuil = req.value("cuil", "");
+    std::string algo = req.value("algo", "");
+
+    // La clave viene en base64 desde el cliente
+    std::string key_b64 = req.value("key", "");
+
+    if (!validCuil(cuil) || key_b64.empty() || algo.empty()) {
+        sendResponse(ssl, 400, "text/plain", "Missing CUIL, key or algo");
+        return;
+    }
+
+    // Leer el archivo cifrado desde store/
+    std::string filepath = STORE_DIR + "/" + cuil + ".aes";
+    std::ifstream file(filepath, std::ios::binary);
+    if (!file) {
+        sendResponse(ssl, 404, "text/plain", "No encrypted file found for this CUIL");
+        return;
+    }
+
+    std::ostringstream file_buf;
+    file_buf << file.rdbuf();
+    file.close();
+    std::string encrypted_data = file_buf.str();
+
+    // Decodificar la clave desde base64
+    std::vector<uint8_t> raw_key = base64Decode(key_b64);
+
+    // Reconstruir la clave
+    Keys key(algo, raw_key);
+
+    std::istringstream in(encrypted_data);
+    std::ostringstream out;
+
+    try {
+        if (algo == "aes256") {
+            AES256 aes(key);
+            StreamProcessor::process(aes, in, out, false);
+        } else if (algo == "aes192") {
+            AES192 aes(key);
+            StreamProcessor::process(aes, in, out, false);
+        } else if (algo == "aes128") {
+            AES128 aes(key);
+            StreamProcessor::process(aes, in, out, false);
+        } else if (algo == "chacha20") {
+            ChaCha20 cc20(key);
+            StreamProcessor::process(cc20, in, out, false);
+        } else {
+            sendResponse(ssl, 400, "text/plain", "Unknown algorithm");
+            return;
+        }
+    } catch (...) {
+        sendResponse(ssl, 500, "text/plain", "Decryption error");
+        return;
+    }
+
+    std::string plaintext = out.str();
+
+    std::cout << "[AESEXE] /decrypt OK - CUIL: " << cuil << std::endl;
+
+    // Devolver el texto plano al cliente
+    sendResponse(ssl, 200, "text/plain", plaintext);
+}
+
 int Server::connectManager(SSL *ssl) {
   
     std::cout << "[AESEXE] {SERVER MODE}: new thread for a client has created" << std::endl;

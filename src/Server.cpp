@@ -225,9 +225,9 @@ void Server::handleDecrypt(SSL *ssl, const std::string &body) {
     // Decodificar la clave desde base64
     std::vector<uint8_t> raw_key = base64Decode(key_b64);
 
-    // Reconstruir la clave
-    Keys key(algo, raw_key);
-
+    /* Reconstruir la clave (se deveria hacer desde la clase loadKey)
+        Keys key(algo, raw_key);
+    */
     std::istringstream in(encrypted_data);
     std::ostringstream out;
 

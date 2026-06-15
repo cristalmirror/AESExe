@@ -30,8 +30,15 @@
         </div>
       </div>
       <div class="right"><!--right-->
-        <input type="radio" name="decipher" value="Decipher"> Buscar Contraseñas
-        <input type="radio" name="cipher" value="Cipher"> Guardar Contraseñas
+        <input type="radio" name="mode" value="decipher"> Buscar Contraseñas
+        <input type="radio" name="mode" value="cipher"> Guardar Contraseñas
+        <p>Algoritmo:</p>
+        <select id="algo">
+          <option value="aes256">AES-256</option>
+          <option value="aes192">AES-192</option>
+          <option value="aes128">AES-128</option>
+          <option value="chacha20">ChaCha20</option>
+        </select>
       </div>
     </div>
   </body>

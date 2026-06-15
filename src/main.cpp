@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         salida por falta de argumentos
         o exeso de los mismmos
     */
-    if (argc < 5 || argc > 5) {
+    if ((argc < 5 || argc > 5) && (std::string(argv[1]) !="ser")) {
          std::cerr << "Uso: " << argv[0] << "con argumentos invalidos" <<std::endl << std::endl;
         help(argv[0]);
         return 1;
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     /*
         manejador de archivos
     */
-    if (!inFile || key.empty() || !outFile) {
+    if ((!inFile || key.empty() || !outFile ) && (mode !="ser")) {
         std::cerr << "Error al abrir archivos o clave invalida" << std::endl;
         return 1;
     }
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         StreamProcessor::process(aes, inFile, outFile, false);
         std::cout << "[\e[31mAESExe\e[0m]: *256 bits modo de descifrado AES*" << std::endl;
 
-    } else if (mode == "ser") {
+    } else if (argc == 4 && mode == "ser") {
       Server server(argv[2], argv[3]);
       server.initServer();
       server.openConnect();

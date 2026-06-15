@@ -32,6 +32,7 @@ protected:
     SSL_CTX *ctx;
     socklen_t address_leng;
     int connectManager(SSL *ssl);
+    void handleStaticFile(SSL *ssl, const std::string &path);
     void handleEncrypt(SSL *ssl, const std::string &body);
     void handleDecrypt(SSL *ssl, const std::string &body);
     void handleOperations(SSL *ssl);

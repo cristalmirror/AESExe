@@ -1,4 +1,4 @@
-const SERVER = 'https://localhost:8080';
+const SERVER = 'https://192.168.1.35:8080';
 
 const cuilInput = document.getElementById('cuil');
 const textarea  = document.getElementById('textarea-data');
@@ -7,9 +7,8 @@ const btnBuscar = document.getElementById('btn-buscar');
 const fileInput = document.getElementById('fileInput');
 
 function getMode() {
-    if (document.querySelector('input[name="decipher"]:checked')) return 'decipher';
-    if (document.querySelector('input[name="cipher"]:checked'))   return 'cipher';
-    return null;
+    const checked = document.querySelector('input[name="mode"]:checked');
+    return checked ? checked.value : null;
 }
 
 async function toBase64(file) {
@@ -22,6 +21,7 @@ async function toBase64(file) {
 async function encrypt() {
     const cuil = cuilInput.value.trim();
     const data = textarea.value.trim();
+    const algo = document.getElementById('algo').value;
 
     if (!cuil || !data) {
         alert('Complete el CUIL y las contraseñas.');
@@ -31,7 +31,7 @@ async function encrypt() {
     const res = await fetch(`${SERVER}/encrypt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cuil, data })
+        body: JSON.stringify({ cuil, data, algo })
     });
 
     if (!res.ok) { alert(`Error del servidor: ${res.status}`); return; }
@@ -47,6 +47,7 @@ async function encrypt() {
 
 async function decrypt(keyFile) {
     const cuil = cuilInput.value.trim();
+    const algo = document.getElementById('algo').value;
 
     if (!cuil) {
         alert('Complete el CUIL.');
@@ -58,19 +59,14 @@ async function decrypt(keyFile) {
     const res = await fetch(`${SERVER}/decrypt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cuil, key })
+        body: JSON.stringify({ cuil, key, algo })
     });
 
     if (!res.ok) { alert(`Error del servidor: ${res.status}`); return; }
 
-    const { passwords, newKey } = await res.json();
-    textarea.value = passwords;
-
-    window.postMessage({
-        type: 'AESEXE_DOWNLOAD_KEY',
-        keyBase64: newKey,
-        filename: `key_${cuil}.bin`
-    }, '*');
+    const plaintext = await res.text();
+    textarea.style.display = '';
+    textarea.value = plaintext;
 }
 
 function setMode(mode) {
@@ -80,8 +76,8 @@ function setMode(mode) {
     btnBuscar.style.display = isCipher ? 'none' : '';
 }
 
-document.querySelector('input[name="cipher"]').addEventListener('change',   () => setMode('cipher'));
-document.querySelector('input[name="decipher"]').addEventListener('change', () => setMode('decipher'));
+document.querySelector('input[name="mode"][value="cipher"]').addEventListener('change',   () => setMode('cipher'));
+document.querySelector('input[name="mode"][value="decipher"]').addEventListener('change', () => setMode('decipher'));
 
 btnEnviar.addEventListener('click', () => {
     const mode = getMode();

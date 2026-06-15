@@ -6,8 +6,24 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+## [0.3.1] 2026-06-15
+### Añadido
+- Se implementó `handleStaticFile` en `Server` para servir los archivos estáticos del cliente web (`GET /`, `GET /src/main.js`, `GET /style/style.css`).
+- Se agregó ruta `GET` en el router de `connectManager` que delega a `handleStaticFile`.
 
-- Implementacion de las operaciones de la vercion 0.2.1 del servidor.
+### Corregido
+- `connectManager`: se agregó lectura en dos fases (Phase 1: headers, Phase 2: body por `Content-Length`) para evitar truncado de peticiones POST con body grande.
+- `connectManager`: se agregó lambda `closeConnection` y se corrigieron fugas de recursos (`close(SSL_get_fd(ssl))` faltante en múltiples rutas de error).
+- `handleEncrypt`: se agregó validación del campo `algo` antes de generar la clave; sin esto `Keys::generate` devolvía 16 bytes por defecto y el archivo cifrado quedaba vacío.
+- `initServer`: se corrigió `bind()` fallido con `return` reemplazado por `exit(EXIT_FAILURE)`; se agregó chequeo de error en `socket()`.
+- `main.cpp`: se corrigió el chequeo de `argc` para permitir el modo `ser` con 4 argumentos y se evita validar archivos cuando el modo es `ser`.
+- Cliente (`main.js`): se corrigió `getMode()` — los radio buttons tenían `name` distintos y podían quedar ambos seleccionados.
+- Cliente (`main.js`): `encrypt()` y `decrypt()` no enviaban el campo `algo` al servidor, causando respuesta 400.
+- Cliente (`main.js`): `decrypt()` intentaba parsear la respuesta como JSON (`res.json()`); el servidor devuelve texto plano (`res.text()`).
+- Cliente (`main.js`): URL del servidor corregida de `localhost` a `192.168.1.35:8080`.
+- Cliente (`index.html`): radio buttons unificados con `name="mode"` y se agregó selector de algoritmo `<select id="algo">`.
+- Certificado TLS regenerado con `CN=192.168.1.35` (anterior era `192.168.0.251`).
+
 ## [0.3.0] 2026-06-8
 ### Añadido
 - Se crearon los archivos `StreamProcessorGCM.hpp` y `StreamProcessorGCM.cpp` con una nueva clase `StreamProcessorGCM` que implementa el modo de cifrado autenticado GCM (NIST SP 800-38D), incluyendo multiplicación en GF(2¹²⁸), GHASH, modo contador GCTR, y formato de salida `[nonce 12 B][ciphertext][tag 16 B]`.

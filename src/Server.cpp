@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -27,6 +28,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <unistd.h>
 #include <vector>
 /*
     json type simplification:
@@ -41,6 +43,35 @@ static const std::string CORS =
     "Access-Control-Allow-Origin: *\r\n"
     "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
     "Access-Control-Allow-Headers: Content-Type\r\n";
+
+void Server::handleStaticFile(SSL *ssl, const std::string &path) {
+    std::string filepath, ctx;
+
+    //options of archive type of client 
+    if (path == "../") {
+        filepath = "client/index/index.html";
+        ctx = "text/html";
+    } else if (path == "/src/main.js") {
+        filepath = "client/src/main.js";
+        ctx = "application/javascript";
+    } else if (path == "/style/style.css") {
+        filepath = "client/style/style.css";
+        ctx = "text/css";
+    } else {
+        sendResponse(ssl, 404, "text/plain", "Not Found");
+        return;
+    }
+    //option if haven't files 
+    std::ifstream file(filepath);
+    if (!file) {
+        sendResponse(ssl, 404, "text/plain", "Not Found");
+        return;
+    }
+
+    std::ostringstream buf;
+    buf << file.rdbuf();
+    sendResponse(ssl,200, ctx,"File not Found");
+}
 
 std::string Server::parseHttpPath(const std::string &req) {
     size_t s = req.find(' ');
@@ -142,13 +173,22 @@ void Server::handleEncrypt(SSL *ssl, const std::string &body) {
     std::string cuil = req.value("cuil","");
     std::string data = req.value("data", "");
     std::string algo = req.value("algo","");
-        
-    if (!validCuil(cuil) || data.empty()) {
-        sendResponse(ssl, 400, "text/planin", "Missing CUIL or data");
+
+    // Validar que los campos obligatorios estén presentes
+    if (!validCuil(cuil) || data.empty() || algo.empty()) {
+        sendResponse(ssl, 400, "text/plain", "Missing CUIL, data or algo");
         return;
     }
 
-    /*generations key*/
+    // Rechazar algoritmos desconocidos antes de generar la clave.
+    // Sin esta verificación, Keys::generate devolvería 16 bytes por defecto
+    // y el cifrado nunca correría, dejando un archivo vacío en disco.
+    if (algo != "aes256" && algo != "aes192" && algo != "aes128" && algo != "chacha20") {
+        sendResponse(ssl, 400, "text/plain", "Unknown algorithm");
+        return;
+    }
+
+    // Generar la clave aleatoria para el algoritmo solicitado
     std::vector<uint8_t> raw_key = Keys::generate(algo);
 
     std::istringstream in(data);
@@ -260,59 +300,121 @@ int Server::connectManager(SSL *ssl) {
   
     std::cout << "[AESEXE] {SERVER MODE}: new thread for a client has created" << std::endl;
 
+    auto closeConnection = [ssl]() {
+        SSL_shutdown(ssl);
+        close(SSL_get_fd(ssl));
+        SSL_free(ssl);
+    };
+    
     if (SSL_accept(ssl) <= 0) {
         std::cerr << "Handshake error" << std::endl;
         ERR_print_errors_fp(stderr);
+        close(SSL_get_fd(ssl));
         SSL_free(ssl);
         return 1;
     } else {
-        //initial size buffer define
+        // --- Fase 1: leer los headers HTTP ---
+        // El buffer arranca en 1024 bytes y crece exponencialmente si el
+        // mensaje es más grande. Leemos hasta encontrar "\r\n\r\n", que marca
+        // el fin de los headers HTTP y el inicio del body.
         size_t tam = 1024;
         size_t total_read = 0;
         char *buffer = (char *)malloc(tam);
 
-        //manager memory error
-        if (buffer == NULL) return 1;
+        if (buffer == NULL) {
+            closeConnection();
+            return 1;
+        }
         int read_bytes;
-        /*
-          reallocation memory size system
-          this code part has create to case of
-          size message is mayor that 1024 bytes
 
-          if is necesary this system incrememt
-          exponetly form the size in the heap memory
-          with realloc()
-         */
         while ((read_bytes = SSL_read(ssl, buffer + total_read, tam - total_read - 1)) > 0) {
-            //incrememt in read bytes size
             total_read += read_bytes;
 
-            // comprobation of size buffer
+            // Si el buffer se llenó, duplicar su tamaño en el heap
             if (total_read >= tam - 1) {
-                tam *= 2; // exponential new size
-                char *temp = (char *)realloc(buffer,tam);
+                tam *= 2;
+                char *temp = (char *)realloc(buffer, tam);
+                if (temp == NULL) {
+                    free(buffer);
+                    closeConnection();
+                    return 1;
+                }
+                buffer = temp;
+            }
+            buffer[total_read] = '\0';
 
+            // Fin de headers detectado: salir del loop
+            if (strstr(buffer, "\r\n\r\n")) break;
+        }
+
+        // --- Fase 2: leer el body completo según Content-Length ---
+        // En HTTP el body viene después de los headers. Su tamaño exacto está
+        // declarado en el header "Content-Length". Sin este paso, los datos
+        // de una petición POST pueden llegar truncados si viajan en un paquete
+        // TCP separado al de los headers.
+
+        std::string partial(buffer, total_read);
+
+        // Ubicar dónde terminan los headers (justo después de "\r\n\r\n")
+        size_t header_end = partial.find("\r\n\r\n");
+        size_t content_length = 0;
+
+        // Extraer el valor numérico de Content-Length
+        size_t cl_pos = partial.find("Content-Length: ");
+        if (cl_pos != std::string::npos && cl_pos < header_end) {
+            size_t cl_end = partial.find("\r\n", cl_pos);
+            try {
+                content_length = std::stoul(partial.substr(cl_pos + 16, cl_end - cl_pos - 16));
+            } catch (const std::exception &) {
+                sendResponse(ssl, 400, "text/plain", "Invalid Content-Length");
+                free(buffer);
+                SSL_shutdown(ssl);
+                close(SSL_get_fd(ssl));
+                SSL_free(ssl);
+                return 1;
+            }
+        }
+
+        // Calcular cuántos bytes del body ya llegaron junto con los headers
+        // (es común que el cliente envíe todo en un solo paquete TCP)
+        size_t body_received = (header_end != std::string::npos)
+                               ? total_read - (header_end + 4)
+                               : 0;
+
+        // Seguir leyendo solo si todavía faltan bytes del body
+        while (body_received < content_length) {
+            size_t remaining = content_length - body_received;
+
+            // Agrandar el buffer si el body no cabe en lo que queda
+            if (total_read + remaining + 1 > tam) {
+                tam = total_read + remaining + 1;
+                char *temp = (char *)realloc(buffer, tam);
                 if (temp == NULL) {
                     free(buffer);
                     return 1;
                 }
                 buffer = temp;
             }
-            buffer[total_read] = '\0';
-            // exit for while
-            if (strstr(buffer,"\r\n\r\n")) break;
-        }
 
-        
-        std::string request(buffer,total_read);
+            read_bytes = SSL_read(ssl, buffer + total_read, remaining);
+            if (read_bytes <= 0) break; // conexión cerrada o error
+
+            total_read    += read_bytes;
+            body_received += read_bytes;
+        }
+        buffer[total_read] = '\0';
+
+        std::string request(buffer, total_read);
         free(buffer);
 
         std::string method = request.substr(0, request.find(' '));
         std::string path = parseHttpPath(request);
         std::string body = parseHttpBody(request);
 
-        if (method == "OPTIONS") {
+        if (method == "OPTIONS"){
             handleOperations(ssl);
+        } else if (method == "GET") {
+            handleStaticFile(ssl, path);
         } else if (method == "POST" && path == "/encrypt") {
             handleEncrypt(ssl, body);
         } else if (method == "POST" && path == "/decrypt") {
@@ -322,6 +424,7 @@ int Server::connectManager(SSL *ssl) {
         }
     }
     SSL_shutdown(ssl);
+    close(SSL_get_fd(ssl));
     SSL_free(ssl);
     return 0;
 }
@@ -356,11 +459,21 @@ Server::Server(std::string ip, std::string s_port) {
 // intialization of server
 void Server::initServer() {
 
+    // Crear el socket TCP. Si falla (devuelve -1), no tiene sentido continuar
+    // porque bind() y listen() sobre fd=-1 tienen comportamiento indefinido.
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        std::cerr << "[AESEXE] {SERVER MODE}: ***Error creating socket***" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
+    // bind() asigna la dirección IP y puerto al socket.
+    // Si falla (ej: puerto en uso o sin permisos), no hay servidor posible:
+    // se usa exit() en lugar de return para que el programa no continúe
+    // y llame a openConnect() con un socket inválido.
     if (bind(sockfd, (struct sockaddr *) &address, sizeof(address)) < 0) {
         std::cerr << "[AESEXE] {SERVER MODE}: ***Error in bind: Need root permissions to the port***" << std::endl;
-        return;
+        exit(EXIT_FAILURE);
     }
 
     address_leng = sizeof(local_address);

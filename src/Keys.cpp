@@ -6,6 +6,7 @@
     y en src los .cpp con los metodos
 */
 #include "../include/Keys.hpp"
+#include <openssl/rand.h>
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -106,5 +107,15 @@ inline void Keys::keyAES256(std::string typeAlgo) {
         if(typeAlgo=="aes256") std::cout << "[\e[32mAES256\e[0m]: Clave generada con exito..." << std::endl;
         else  std::cout << "[\e[32mCHCH20\e[0m]: Clave generada con exito..." << std::endl;
     }
+}
+
+std::vector<uint8_t> Keys::generate(const std::string& algo) {
+    size_t size = 16;
+    if (algo == "aes256" || algo == "chacha20") size = 32;
+    else if (algo == "aes192")                  size = 24;
+
+    std::vector<uint8_t> key(size);
+    RAND_bytes(key.data(), key.size());
+    return key;
 }
 

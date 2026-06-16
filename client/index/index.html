@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>⚖️SNT AESExe</title>
+    <link rel="stylesheet" href="../style/style.css">
+  </head>
+  <!--body context-->
+  <body>
+    <h1>AESExe</h1>
+    <h2>AESExe</h2>
+    <h3>AESExe</h3>
+    <div>
+      <p class="text-information">
+        Este este sistema permite a sus usuarios tener un sistemas de gestion de contraseñas seguras.
+        Permite utilizar contraseñas de guardandolas de forma cifrada que hacen solo el usuario con un archivo key.
+        este archivo key se descargara automaticamente permitiendo desifrar luego las contraseñas.
+        de esa manera pueden verlas.
+      </p>
+    </div>
+    <div class="container">
+      <div class="left"><!--left-->
+        <p>CUIL:</p>
+        <input type="text" id="cuil" placeholder="CUIL">
+        <p>Contraseñas: </p>
+        <div class="textarea-row">
+          <textarea id="textarea-data" placeholder="Escribe aquí..."></textarea>
+          <button id="btn-enviar">Enviar</button>
+          <button id="btn-buscar" style="display:none" onclick="document.getElementById('fileInput').click()">Buscar archivo</button>
+          <input type="file" id="fileInput" style="display:none">
+        </div>
+      </div>
+      <div class="right"><!--right-->
+        <input type="radio" name="mode" value="decipher"> Buscar Contraseñas
+        <input type="radio" name="mode" value="cipher"> Guardar Contraseñas
+        <p>Algoritmo:</p>
+        <select id="algo">
+          <option value="aes256">AES-256</option>
+          <option value="aes192">AES-192</option>
+          <option value="aes128">AES-128</option>
+          <option value="chacha20">ChaCha20</option>
+        </select>
+      </div>
+    </div>
+  </body>
+  <!--footer-->
+  <footer>
+    <p id="text-information">
+      Desarrollado por el Departamento de Nuevas Tecnologias del Juzgado N°1 del Poder Judicial de La Nacion
+    </p>
+    <p class="text-information">AESExe v0.2.1</p>
+  </footer>
+  <script src="../src/main.js"></script>
+</html>

@@ -6,6 +6,11 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+## [0.3.2] 2026-06-15
+### Corregido
+- `handleStaticFile`: el path raíz estaba definido como `"../"` en lugar de `"/"`, por lo que el browser nunca recibía el HTML al hacer `GET /`.
+- `handleStaticFile`: el body del response estaba hardcodeado al literal `"File not Found"` en lugar de `buf.str()`, descartando el contenido leído del archivo.
+
 ## [0.3.1] 2026-06-15
 ### Añadido
 - Se implementó `handleStaticFile` en `Server` para servir los archivos estáticos del cliente web (`GET /`, `GET /src/main.js`, `GET /style/style.css`).

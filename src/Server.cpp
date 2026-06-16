@@ -48,7 +48,7 @@ void Server::handleStaticFile(SSL *ssl, const std::string &path) {
     std::string filepath, ctx;
 
     //options of archive type of client 
-    if (path == "../") {
+    if (path == "/") {
         filepath = "client/index/index.html";
         ctx = "text/html";
     } else if (path == "/src/main.js") {
@@ -70,7 +70,7 @@ void Server::handleStaticFile(SSL *ssl, const std::string &path) {
 
     std::ostringstream buf;
     buf << file.rdbuf();
-    sendResponse(ssl,200, ctx,"File not Found");
+    sendResponse(ssl,200, ctx,buf.str());
 }
 
 std::string Server::parseHttpPath(const std::string &req) {

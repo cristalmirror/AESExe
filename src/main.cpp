@@ -8,8 +8,8 @@
 #include "../include/chacha20.hpp"
 #include "../include/StreamProcessor.hpp"
 #include "../include/Keys.hpp"
-
-
+#include "../include/Server.hpp"
+#include "../include/loadKey.hpp"
 //comandos y descripciones
 struct Command {
     std::string usage;        // cómo se escribe
@@ -30,17 +30,6 @@ const std::vector<Command> COMMANDS = {
     {" dec-cc20 <archivo> <clave> <salida>", "Descifra un archivo chacha20"},
     
 };
-
-//cargador de las keys
-
-std::vector<uint8_t> loadKey(const std::string& path) {
-    std::ifstream f(path, std::ios::binary);
-    if (!f) return {};
-    std::cout << "[\e[32mAESExe\e[0m]: Clave cargada con exito..." << std::endl;
-    return std::vector<uint8_t>((std::istreambuf_iterator<char>(f)), {});
-    
-}
-
 
 //manual de uso
 
@@ -81,7 +70,7 @@ int main(int argc, char* argv[]) {
         salida por falta de argumentos
         o exeso de los mismmos
     */
-    if (argc < 5 || argc > 5) {
+    if ((argc < 5 || argc > 5) && (std::string(argv[1]) !="ser")) {
          std::cerr << "Uso: " << argv[0] << "con argumentos invalidos" <<std::endl << std::endl;
         help(argv[0]);
         return 1;
@@ -96,7 +85,7 @@ int main(int argc, char* argv[]) {
     /*
         manejador de archivos
     */
-    if (!inFile || key.empty() || !outFile) {
+    if ((!inFile || key.empty() || !outFile ) && (mode !="ser")) {
         std::cerr << "Error al abrir archivos o clave invalida" << std::endl;
         return 1;
     }
@@ -135,6 +124,10 @@ int main(int argc, char* argv[]) {
         StreamProcessor::process(aes, inFile, outFile, false);
         std::cout << "[\e[31mAESExe\e[0m]: *256 bits modo de descifrado AES*" << std::endl;
 
+    } else if (argc == 4 && mode == "ser") {
+      Server server(argv[2], argv[3]);
+      server.initServer();
+      server.openConnect();
     } else {
         std::cerr << "Uso: " << argv[0] << "con argumentos invalidos" << std::endl
            << "Use --help para obtener ayuda y ver las opciones disponibles." << std::endl;

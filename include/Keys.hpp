@@ -14,6 +14,7 @@
 class Keys {
 public:
     Keys(std::string pathKey);
+    static std::vector<uint8_t> generate(const std::string& algo);
 private:
     void keyAES128();
     void keyAES192();

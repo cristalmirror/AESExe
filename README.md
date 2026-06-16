@@ -59,7 +59,11 @@ make clean
 ./output/aesexe dec-192 cifrado.cc20 clave.bin resultado.txt
 ./output/aesexe dec-256 cifrado.cc20 clave.bin resultado.txt
 ```
-
+### Modo Servidor Web
+```
+./output/aesexe ser IP PORT
+```
+luego en el navegador introdusca `http://IP:PORT` para ingresar al modo de cifrado web.
 ## Flujo de Datos
 
 1. El usuario ejecuta el comando especificando modo (enc/dec), archivo, clave y salida.

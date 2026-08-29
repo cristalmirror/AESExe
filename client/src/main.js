@@ -1,4 +1,4 @@
-const SERVER = 'https://192.168.1.35:8080';
+const SERVER = window.location.origin;
 
 const cuilInput = document.getElementById('cuil');
 const textarea  = document.getElementById('textarea-data');

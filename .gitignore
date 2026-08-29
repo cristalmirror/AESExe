@@ -1,5 +1,6 @@
 output/*
 !output/.gitkeep
+target/
 aesexe
 aesexe.exe
 *.cc20

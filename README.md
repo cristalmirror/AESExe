@@ -8,24 +8,65 @@ AES-192, AES-256, ChaCha20, una CLI y un servidor web HTTPS.
 Requiere Rust estable y Cargo.
 
 ```bash
-make
-# o: cargo build --release
+cargo build
 ```
 
-`make` deja el ejecutable compatible en `output/aesexe`.
+El ejecutable de desarrollo queda disponible en `target/debug/aesexe`.
 
 ## Uso
 
+Genera una clave AES de 128 bits:
+
 ```bash
-./output/aesexe --key aes128
-./output/aesexe enc archivo.txt keyAES128.bin cifrado.aes
-./output/aesexe dec cifrado.aes keyAES128.bin resultado.txt
-./output/aesexe enc-192 archivo.txt keyAES192.bin cifrado.aes
-./output/aesexe dec-192 cifrado.aes keyAES192.bin resultado.txt
-./output/aesexe enc-256 archivo.txt keyaes256.bin cifrado.aes
-./output/aesexe dec-256 cifrado.aes keyaes256.bin resultado.txt
-./output/aesexe enc-cc20 archivo.txt keychacha20.bin cifrado.cc20
-./output/aesexe dec-cc20 cifrado.cc20 keychacha20.bin resultado.txt
+./target/debug/aesexe --key aes128
+```
+
+Cifra un archivo con AES-128:
+
+```bash
+./target/debug/aesexe enc archivo.txt keyAES128.bin cifrado.aes
+```
+
+Descifra un archivo con AES-128:
+
+```bash
+./target/debug/aesexe dec cifrado.aes keyAES128.bin resultado.txt
+```
+
+Cifra un archivo con AES-192:
+
+```bash
+./target/debug/aesexe enc-192 archivo.txt keyAES192.bin cifrado.aes
+```
+
+Descifra un archivo con AES-192:
+
+```bash
+./target/debug/aesexe dec-192 cifrado.aes keyAES192.bin resultado.txt
+```
+
+Cifra un archivo con AES-256:
+
+```bash
+./target/debug/aesexe enc-256 archivo.txt keyaes256.bin cifrado.aes
+```
+
+Descifra un archivo con AES-256:
+
+```bash
+./target/debug/aesexe dec-256 cifrado.aes keyaes256.bin resultado.txt
+```
+
+Cifra un archivo con ChaCha20:
+
+```bash
+./target/debug/aesexe enc-cc20 archivo.txt keychacha20.bin cifrado.cc20
+```
+
+Descifra un archivo con ChaCha20:
+
+```bash
+./target/debug/aesexe dec-cc20 cifrado.cc20 keychacha20.bin resultado.txt
 ```
 
 El formato conserva compatibilidad con la versión C++: completa el último
@@ -35,7 +76,7 @@ bloque con bytes cero. La salida descifrada puede contener ese padding final.
 
 ```bash
 ./gen-certs.sh 127.0.0.1
-./output/aesexe ser 127.0.0.1 8080
+./target/debug/aesexe ser 127.0.0.1 8080
 ```
 
 Luego abrir `https://127.0.0.1:8080`. El certificado autofirmado es solo para

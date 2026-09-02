@@ -1,3 +1,22 @@
+/* ################# AESExe V 0.4.0 #################
+    Archive: server.rs
+    Version: 0.4.0
+    License: GPL-v3.0
+    #################################################
+
+    This archive content all function to create a
+    local web server that can do the cipher archves
+    by mean of client web in your browser.
+
+    This has create because in LAN networks can use to
+    like a web app and don't need install nothing in your
+    computer.
+
+    I know that is possible make beter but using freameworks.
+    
+*/
+
+
 use crate::{aes::Aes, chacha20::ChaCha20, cipher::BlockCipher, keys, stream};
 use base64::{Engine, engine::general_purpose::STANDARD};
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
@@ -12,8 +31,18 @@ use std::{
     thread,
 };
 
+/* define the max users can suport in networks */
 const MAX_REQUEST: usize = 8 * 1024 * 1024;
 const CORS: &str = "Access-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: POST, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type\r\n";
+
+/*
+ * Data users definitions:
+ *
+ * This software has designing to a organization
+ * that worked with this users data, may be if
+ * need change this in the fure because a login
+ * system is realy a best choice actualy.
+ */
 #[derive(Deserialize)]
 struct ApiRequest {
     #[serde(default)]
@@ -25,6 +54,9 @@ struct ApiRequest {
     #[serde(default)]
     key: String,
 }
+
+
+/* Loader sever fuction */
 
 pub fn run(ip: &str, port: u16) -> io::Result<()> {
     let config = Arc::new(tls_config()?);
@@ -41,6 +73,13 @@ pub fn run(ip: &str, port: u16) -> io::Result<()> {
     }
     Ok(())
 }
+
+/*
+ * The loader of SSL/TSL protocol has write to work
+ * with certs and keys in local networks but self-signature.
+ *
+ * I know, this is garbage but the client allways have the reason...
+ */
 fn tls_config() -> io::Result<ServerConfig> {
     let mut cert = BufReader::new(fs::File::open("server.crt")?);
     let certs: Vec<CertificateDer<'static>> =
@@ -57,12 +96,18 @@ fn tls_config() -> io::Result<ServerConfig> {
         .with_single_cert(certs, key)
         .map_err(io::Error::other)
 }
+
+/*
+ * Maker of SSL/TSL cipher channel.
+ */
 fn serve(socket: TcpStream, config: Arc<ServerConfig>) -> io::Result<()> {
     let conn = ServerConnection::new(config).map_err(io::Error::other)?;
     let mut tls = StreamOwned::new(conn, socket);
     let req = read_request(&mut tls)?;
     route(&mut tls, &req)
 }
+
+/* read a complete HTTP request */
 fn read_request(r: &mut dyn Read) -> io::Result<Vec<u8>> {
     let mut all = Vec::new();
     let mut buf = [0; 4096];
@@ -100,6 +145,13 @@ fn read_request(r: &mut dyn Read) -> io::Result<Vec<u8>> {
     }
     Ok(all)
 }
+
+/*
+ * route of operation:
+ *
+ * Make a instance of cipher object of the operation
+ * need to client.
+ */
 fn route(w: &mut dyn Write, raw: &[u8]) -> io::Result<()> {
     let split = raw
         .windows(4)
@@ -110,7 +162,7 @@ fn route(w: &mut dyn Write, raw: &[u8]) -> io::Result<()> {
     let method = first.next().unwrap_or("");
     let path = first.next().unwrap_or("");
     let body = &raw[split + 4..];
-    match (method, path) {
+    match (method, path) { //maybe will be use a freamwork in the future and not this match 
         ("OPTIONS", _) => response(w, 204, "text/plain", b""),
         ("GET", "/") => static_file(w, "client/index/index.html", "text/html"),
         ("GET", "/src/main.js") => static_file(w, "client/src/main.js", "application/javascript"),
@@ -120,9 +172,17 @@ fn route(w: &mut dyn Write, raw: &[u8]) -> io::Result<()> {
         _ => response(w, 404, "text/plain", b"Not Found"),
     }
 }
+
+
 fn valid_cuil(s: &str) -> bool {
     !s.is_empty() && s.len() <= 20 && s.bytes().all(|b| b.is_ascii_digit() || b == b'-')
 }
+
+
+
+/* This funcion define the algorithm used in the encrypt or decrypt
+ * function.
+ */
 fn cipher(algo: &str, key: &[u8]) -> io::Result<Box<dyn BlockCipher>> {
     match algo {
         "aes128" | "aes192" | "aes256" => Ok(Box::new(Aes::new(key)?)),
@@ -133,9 +193,13 @@ fn cipher(algo: &str, key: &[u8]) -> io::Result<Box<dyn BlockCipher>> {
         )),
     }
 }
+
+/* parse to JSON type the request */
 fn parse(body: &[u8]) -> Result<ApiRequest, serde_json::Error> {
     serde_json::from_slice(body)
 }
+
+
 fn encrypt(w: &mut dyn Write, body: &[u8]) -> io::Result<()> {
     let req = match parse(body) {
         Ok(v) => v,
@@ -193,6 +257,8 @@ fn static_file(w: &mut dyn Write, path: &str, content_type: &str) -> io::Result<
         Err(_) => response(w, 404, "text/plain", b"Not Found"),
     }
 }
+
+/* Error and Successful response server */
 fn response(w: &mut dyn Write, status: u16, ct: &str, body: &[u8]) -> io::Result<()> {
     let reason = match status {
         200 => "OK",

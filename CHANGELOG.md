@@ -6,6 +6,14 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+## [0.4.0] 2026-08-28
+### Cambiado
+- El backend completo fue migrado de C++17 a Rust 2024.
+- El servidor ahora valida claves, limita peticiones y usa el mismo origen del cliente web.
+
+### Eliminado
+- Código fuente, headers y dependencias de compilación C++.
+
 ## [0.3.2] 2026-06-15
 ### Corregido
 - `handleStaticFile`: el path raíz estaba definido como `"../"` en lugar de `"/"`, por lo que el browser nunca recibía el HTML al hacer `GET /`.

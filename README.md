@@ -1,69 +1,97 @@
-# AESExe – Cifrado AES en C++
+# AESExe – cifrado en Rust
 
-Este proyecto implementa una herramienta de cifrado de archivos utilizando los algoritmos AES-128, AES-192, AES-256 y ChaCha20 escrita en C++ puro con una arquitectura escalable y desacoplada.
+Herramienta de cifrado implementada íntegramente en Rust. Incluye AES-128,
+AES-192, AES-256, ChaCha20, una CLI y un servidor web HTTPS.
 
-## Arquitectura
+## Compilación
 
-La aplicación sigue principios de diseño SOLID, separando la lógica matemática del procesamiento de datos y la interfaz de usuario.
-
-### Componentes Principales
-
-- **ICipher**: Interfaz pura que define el contrato para cualquier algoritmo de cifrado. Permite intercambiar AES por otros algoritmos (como ChaCha20) sin modificar el sistema.
-- **AES**: Implementación concreta del algoritmo AES de 128, 192, 256 bits. Contiene la lógica de expansión de claves, S-Boxes y transformaciones de bloques. Es "pura lógica", sin dependencias de entrada/salida.
-- **StreamProcessor**: Motor de procesamiento que maneja el flujo de datos. Lee archivos bloque a bloque, permitiendo procesar archivos de cualquier tamaño con un consumo de memoria mínimo y constante.
-- **Main**: Orquestador que gestiona los argumentos de la línea de comandos y conecta los componentes.
-
-## Estructura del Proyecto
-
-- `include/`: Definiciones de interfaces y headers de los componentes.
-- `src/`: Implementación del punto de entrada de la aplicación.
-- `output/`: Directorio destinado a los binarios compilados y resultados.
-- `CHANGELOG.md`: Historial detallado de versiones.
-
-## Cómo Compilar
-
-Para compilar el proyecto en sistemas Linux/Unix:
+Requiere Rust estable y Cargo.
 
 ```bash
-cd AESExe
-make 
-```
-## Compilar para debug:
-```bash
-make debug
-```
-para limpiar los .o los archivos residuales de la compilacion por debug:
-```bash
-make clean
+cargo build
 ```
 
-## Cómo Usar
-### Generar Clave:
-```bash
-./output/aesexe --key <aes128/aes256/chacha20>
-```
-### Cifrar:
+El ejecutable de desarrollo queda disponible en `target/debug/aesexe`.
+
+## Uso
+
+Genera una clave AES de 128 bits:
 
 ```bash
-./output/aesexe enc archivo.txt clave.bin cifrado.aes
-./output/aesexe enc-cc20 archivo.txt clave.bin cifrado.cc20
-./output/aesexe enc-192 archivo.txt clave.bin cifrado.aes
-./output/aesexe enc-256 archivo.txt clave.bin cifrado.aes
+./target/debug/aesexe --key aes128
 ```
 
-### Descifrar:
+Cifra un archivo con AES-128:
 
 ```bash
-./output/aesexe dec cifrado.aes clave.bin resultado.txt
-./output/aesexe dec-cc20 cifrado.cc20 clave.bin resultado.txt
-./output/aesexe dec-192 cifrado.cc20 clave.bin resultado.txt
-./output/aesexe dec-256 cifrado.cc20 clave.bin resultado.txt
+./target/debug/aesexe enc archivo.txt keyAES128.bin cifrado.aes
 ```
 
-## Flujo de Datos
+Descifra un archivo con AES-128:
 
-1. El usuario ejecuta el comando especificando modo (enc/dec), archivo, clave y salida.
-2. `Main` carga la clave en memoria e inicializa `AES128`.
-3. `StreamProcessor` abre los flujos de lectura y escritura.
-4. Se procesa el archivo bloque a bloque (16 bytes) aplicando la transformación correspondiente.
-5. El resultado se escribe directamente en el archivo de salida.
+```bash
+./target/debug/aesexe dec cifrado.aes keyAES128.bin resultado.txt
+```
+
+Cifra un archivo con AES-192:
+
+```bash
+./target/debug/aesexe enc-192 archivo.txt keyAES192.bin cifrado.aes
+```
+
+Descifra un archivo con AES-192:
+
+```bash
+./target/debug/aesexe dec-192 cifrado.aes keyAES192.bin resultado.txt
+```
+
+Cifra un archivo con AES-256:
+
+```bash
+./target/debug/aesexe enc-256 archivo.txt keyaes256.bin cifrado.aes
+```
+
+Descifra un archivo con AES-256:
+
+```bash
+./target/debug/aesexe dec-256 cifrado.aes keyaes256.bin resultado.txt
+```
+
+Cifra un archivo con ChaCha20:
+
+```bash
+./target/debug/aesexe enc-cc20 archivo.txt keychacha20.bin cifrado.cc20
+```
+
+Descifra un archivo con ChaCha20:
+
+```bash
+./target/debug/aesexe dec-cc20 cifrado.cc20 keychacha20.bin resultado.txt
+```
+
+El formato conserva compatibilidad con la versión C++: completa el último
+bloque con bytes cero. La salida descifrada puede contener ese padding final.
+
+## Servidor web
+
+```bash
+./gen-certs.sh 127.0.0.1
+./target/debug/aesexe ser 127.0.0.1 8080
+```
+
+Luego abrir `https://127.0.0.1:8080`. El certificado autofirmado es solo para
+desarrollo.
+
+## Desarrollo
+
+```bash
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test
+```
+
+- `src/aes.rs`: AES parametrizado por tamaño de clave.
+- `src/chacha20.rs`: ChaCha20 compatible con el formato histórico.
+- `src/stream.rs`: procesamiento de archivos con memoria constante.
+- `src/server.rs`: HTTPS, API JSON y estáticos.
+- `src/main.rs`: interfaz de línea de comandos.

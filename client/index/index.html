@@ -1,53 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
-    <title>⚖️SNT AESExe</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AESExe</title>
     <link rel="stylesheet" href="../style/style.css">
   </head>
   <!--body context-->
   <body>
-    <h1>AESExe</h1>
-    <h2>AESExe</h2>
-    <h3>AESExe</h3>
-    <div>
-      <p class="text-information">
-        Este este sistema permite a sus usuarios tener un sistemas de gestion de contraseñas seguras.
+    <div class="page">
+      <header class="app-header">
+        <h1>AESExe</h1><br />
+        <h2 class="version-badge"> AESExe - v0.4.1</h2>
+      </header>
+
+      <p class="text-information lead">
+        Este sistema permite a sus usuarios tener un sistema de gestion de contraseñas seguras.
         Permite utilizar contraseñas de guardandolas de forma cifrada que hacen solo el usuario con un archivo key.
         este archivo key se descargara automaticamente permitiendo desifrar luego las contraseñas.
         de esa manera pueden verlas.
       </p>
-    </div>
-    <div class="container">
-      <div class="left"><!--left-->
-        <p>CUIL:</p>
-        <input type="text" id="cuil" placeholder="CUIL">
-        <p>Contraseñas: </p>
-        <div class="textarea-row">
-          <textarea id="textarea-data" placeholder="Escribe aquí..."></textarea>
-          <button id="btn-enviar">Enviar</button>
-          <button id="btn-buscar" style="display:none" onclick="document.getElementById('fileInput').click()">Buscar archivo</button>
-          <input type="file" id="fileInput" style="display:none">
+
+      <main class="card">
+        <div class="left"><!--left-->
+          <label for="cuil">CUIL</label>
+          <input type="text" id="cuil" placeholder="CUIL">
+
+          <label for="textarea-data">Contraseñas</label>
+          <div class="textarea-row">
+            <textarea id="textarea-data" placeholder="Escribe aquí..."></textarea>
+            <div class="actions">
+              <button id="btn-enviar" type="button">Enviar</button>
+              <button id="btn-buscar" type="button" style="display:none" onclick="document.getElementById('fileInput').click()">Buscar archivo</button>
+              <input type="file" id="fileInput" style="display:none">
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="right"><!--right-->
-        <input type="radio" name="mode" value="decipher"> Buscar Contraseñas
-        <input type="radio" name="mode" value="cipher"> Guardar Contraseñas
-        <p>Algoritmo:</p>
-        <select id="algo">
-          <option value="aes256">AES-256</option>
-          <option value="aes192">AES-192</option>
-          <option value="aes128">AES-128</option>
-          <option value="chacha20">ChaCha20</option>
-        </select>
-      </div>
+
+        <div class="right"><!--right-->
+          <div class="mode-toggle">
+            <label class="mode-option">
+              <input type="radio" name="mode" value="decipher">
+              <span>Buscar Contraseñas</span>
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="mode" value="cipher">
+              <span>Guardar Contraseñas</span>
+            </label>
+          </div>
+
+          <label for="algo">Algoritmo</label>
+          <select id="algo">
+            <option value="aes256">AES-256</option>
+            <option value="aes192">AES-192</option>
+            <option value="aes128">AES-128</option>
+            <option value="chacha20">ChaCha20</option>
+          </select>
+        </div>
+      </main>
+
+      <!--footer-->
+      <footer class="app-footer">
+        <p id="text-information">
+          Desarrollado por cristalmirror: <a href="https://github.com/cristalmirror/AESExe">https://github.com/cristalmirror/AESExe</a>
+        </p>
+        <p class="text-information">AESExe v0.4.1</p>
+      </footer>
     </div>
+    <script src="../src/main.js"></script>
   </body>
-  <!--footer-->
-  <footer>
-    <p id="text-information">
-      Desarrollado por el Departamento de Nuevas Tecnologias del Juzgado N°1 del Poder Judicial de La Nacion
-    </p>
-    <p class="text-information">AESExe v0.2.1</p>
-  </footer>
-  <script src="../src/main.js"></script>
 </html>

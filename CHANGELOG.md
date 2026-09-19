@@ -6,6 +6,12 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+## [0.4.1] 2026-09-19
+### Cambiado
+- Cliente (`index.html`, `style.css`): rediseño visual manteniendo compatibilidad con `main.js` (mismos `id`/`name` usados por el cliente). Estructura reorganizada en tarjeta central (`.card`) con header, descripción, formulario y footer.
+- Cliente (`style.css`): paleta oscura con variables CSS, inputs/textarea/select con estados de foco, botones con hover/active, y el selector de modo convertido en chips seleccionables.
+- Cliente (`style.css`): el `<select id="algo">` ahora se muestra con fondo blanco y texto negro para asegurar legibilidad de las opciones en el menú desplegable.
+
 ## [0.4.0] 2026-08-28
 ### Cambiado
 - El backend completo fue migrado de C++17 a Rust 2024.
